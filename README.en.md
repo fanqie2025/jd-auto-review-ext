@@ -1,6 +1,7 @@
 # JD Auto Review (image + 60 chars) — Chrome/Edge extension · Beta v0.1.0
 
-**English** · [中文说明](README.md)
+**English** · [中文说明](README.md) ｜ Tutorial: [English](TUTORIAL.en.md) · [中文](使用教程.md)
+｜ 📥 **Download**: [GitHub Releases page](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest)
 
 > ⭐ **If this project helps you, please [give it a Star](https://github.com/fanqie2025/jd-auto-review-ext).** It is the most practical support for a small tool like this.
 
@@ -33,9 +34,17 @@ A standalone **Manifest V3 extension** that ports the old Tampermonkey approach 
 
 ## Install (Chrome / Edge, ~30 seconds)
 
-1. Unzip `jd-auto-review-ext` to a permanent folder.
+> 📥 **Step 0 · Download**: open the **[Releases page](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest)**
+> and download `jd-auto-review-ext-v0.1.0.zip` from **Assets**.
+> The same release also ships `jd-auto-review-ext-v0.1.0.jar` — a byte-identical copy with a different extension
+> (Chrome loads the `.zip`; use whichever suffix you prefer). Then **unzip** it to get a `jd-auto-review-ext` folder.
+>
+> Direct links: [zip](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest/download/jd-auto-review-ext-v0.1.0.zip) ·
+> [jar](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest/download/jd-auto-review-ext-v0.1.0.jar)
+
+1. Unzip the archive to a permanent folder (do not leave it in Downloads — the browser reads the extension from this folder live).
 2. Open `chrome://extensions` (Edge: `edge://extensions`) → enable **Developer mode**.
-3. Click **Load unpacked** → select the `jd-auto-review-ext` folder.
+3. Click **Load unpacked** → select the `jd-auto-review-ext` folder (**the folder itself**, not a file inside it).
 4. The options page opens automatically; otherwise click the toolbar icon.
 5. **Keep "文案来源 = 只用现成评价" and you need no API key at all.**
 

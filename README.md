@@ -1,6 +1,7 @@
 # 京东自动评价（图文 · 60字）— Chrome/Edge 扩展 · 测试版 v0.1.0
 
 **中文** · [English](README.en.md) ｜ 教程：[中文使用教程](使用教程.md) · [English Tutorial](TUTORIAL.en.md)
+｜ 📥 **下载**：[GitHub Releases 下载页](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest)
 
 > ⭐ **如果这个项目帮到你，请到 GitHub [点个 Star](https://github.com/fanqie2025/jd-auto-review-ext)** —— 这是对这类小工具最实在的支持。
 
@@ -35,9 +36,18 @@
 
 ## 安装（Chrome / Edge 都一样，约 30 秒）
 
+> 📥 **第 0 步 · 下载**：打开 **[下载页 / Releases](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest)**，
+> 下 `jd-auto-review-ext-v0.1.0.zip`（点开 Assets 里的那个文件）。
+> 同目录还有一个**内容完全相同**的 `jd-auto-review-ext-v0.1.0.jar` —— 习惯用 `.jar` 后缀就下它，两者字节一致。
+> 下完**解压**，得到一个 `jd-auto-review-ext` 文件夹。
+>
+> 直链（不想进页面的话）：[zip](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest/download/jd-auto-review-ext-v0.1.0.zip) ·
+> [jar](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest/download/jd-auto-review-ext-v0.1.0.jar)
+
 1. 打开 `chrome://extensions`（Edge 是 `edge://extensions`）
 2. 打开右上角「**开发者模式**」
-3. 点「**加载已解压的扩展程序**」，选择本目录（`jd-auto-review-ext`）
+3. 点「**加载已解压的扩展程序**」，选择第 0 步解压出来的那个 `jd-auto-review-ext` 文件夹
+   （**选文件夹本身**，不是里面的某个文件；也别放在下载目录里随手删，扩展是从这个文件夹实时读取的）
 4. 装好后会自动弹出**设置页**；没弹就点工具栏上的扩展图标
 5. **文案来源保持默认的「只用现成评价」就不用填任何密钥**，直接能用；
    只有把文案来源改成 AI 时才需要填 API 密钥
@@ -260,7 +270,20 @@ src/textsource.js      文案引擎：清洗 / 质量过滤 / 抽句重组 / 模
 src/content.js         全部页面操作：面板 / 取文案 / 配图 / 打星 / 发表 / 翻单
 src/background.js      页面做不到的三件事：取评价池（图+文）、取晒单图、抓图转 base64（绕开页面 CORS）
 src/options.html/js    设置页
+tools/pack.ps1         一键打包：生成 .zip 与 .jar（两者字节相同），并打印 SHA256
+tools/pack.cmd         上面那个的双击版
 ```
+
+## 发版（怎么重新打包）
+
+改完代码后，**双击 `tools\pack.cmd`**（或 `pwsh -File tools\pack.ps1`）即可，它会：
+
+1. 从 `manifest.json` 读版本号；
+2. 把扩展目录下除 `.git` / `tools` / 上次产物之外的文件打进压缩包，顶层保持一层 `jd-auto-review-ext/`；
+3. 输出 `jd-auto-review-ext-v<版本>.zip` 与**内容完全相同**的 `.jar`（`.jar` 本身就是 zip 格式，只是后缀不同）；
+4. 打印文件数、字节数与 SHA256 —— 上传 Release 后可用它核对附件。
+
+默认输出到扩展目录的上一级，也可 `-OutDir D:\某处` 指定。产物已在 `.gitignore` 里，不会误提交。
 
 单测（纯函数，可直接 `node` 跑）：
 

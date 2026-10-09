@@ -1,6 +1,7 @@
 # Tutorial · JD Auto Review (image + 60 characters) — Beta v0.1.0
 
 > **English** · [中文使用教程](使用教程.md)
+> ｜ 📥 **Download**: [GitHub Releases page](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest)
 >
 > ⭐ If this helps you, please **[give the project a Star](https://github.com/fanqie2025/jd-auto-review-ext)** — it is the most practical way to support a small tool like this.
 
@@ -13,6 +14,15 @@ What it does: **it takes real reviews that other buyers already published for th
 ---
 
 ## 1. Install (about 30 seconds)
+
+**Step 0 · download first**
+👉 Open the **[Releases page](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest)** and click
+`jd-auto-review-ext-v0.1.0.zip` under **Assets**. (The release also has `jd-auto-review-ext-v0.1.0.jar` —
+**byte-identical**, just a different suffix; Chrome uses the `.zip` one.)
+
+Direct links without opening the page:
+[zip](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest/download/jd-auto-review-ext-v0.1.0.zip) ·
+[jar](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest/download/jd-auto-review-ext-v0.1.0.jar)
 
 1. Unzip the whole `jd-auto-review-ext` folder to a **permanent location** (e.g. `D:\jd-auto-review-ext`).
    Do **not** leave it in Downloads — the browser loads the extension from this folder live; if the folder disappears the extension breaks.
