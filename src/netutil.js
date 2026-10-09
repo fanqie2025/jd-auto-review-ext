@@ -1,7 +1,7 @@
 /**
  * 网络小工具（纯函数，可单测）
  * 这两个坑都是实测踩出来的：
- *   ① 接口地址只填到 /v1（如 http://192.168.10.111:7864/v1），fetch 会 404 → 自动补 /chat/completions
+ *   ① 接口地址只填到 /v1（如 https://api.deepseek.com/v1），fetch 会 404 → 自动补 /chat/completions
  *   ② 密钥里混进中文/全角字符时，fetch 直接抛 "String contains non ISO-8859-1 code point"，
  *      而且完全看不出是哪个字符 → 提前拦下来并指名道姓
  */

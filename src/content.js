@@ -8,6 +8,19 @@
  *   老：club.jd.com/myJdcomments/{myJdcomment.action, orderVoucher.action, saveCommentSuccess}
  *   新：comment.m.jd.com/pc-static/{center, publish}
  * 默认【试跑】：填字 + 打星 + 配图，但不点「发表」。
+ *
+ * ── 来源与致谢（改动请一并保留本段）────────────────────────────────────────
+ * 本文件是老链路部分**移植自** charmingYouYou/JDAIAutoComment v8.6（MIT，© charmingYouYou）：
+ *   老链路三条 URL（myJdcomment.action / orderVoucher.action / saveCommentSuccess）、
+ *   商品名与 SKU 取 `.p-name a`、上传完成判据数 `img[src*="imageUpload"]`、
+ *   正文框 `.f-textarea textarea`、五星 `.star5`，以及"一个按钮控制开始/暂停"的闭环交互。
+ * 新评价中心的选择器**参考自** liu-ws/Haoping（好评）v0.1.0（MIT，© 2026 好评 contributors）：
+ *   URL 判定 `pc-static/{center,publish}`、`.scoreBox-conter-score-star-box-item`、
+ *   `.rate-publish-submit-button`。
+ * 「填字要分块打字 + 填完读页面计数复核」的结论来自 Fzuim/jd-review-bot-skill 的踩坑记录。
+ * 完整出处、许可原文与"哪些是原创"（以及逐条对应的**行号**）见仓库根 THIRD-PARTY-NOTICES.md。
+ * 本项目仅供个人学习自用，禁止商用与自媒体转载。
+ * ──────────────────────────────────────────────────────────────────────
  */
 (function () {
   'use strict';

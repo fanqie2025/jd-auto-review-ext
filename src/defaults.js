@@ -14,6 +14,7 @@ var JDAR_DEFAULTS = {
   minScore: 4,             // 只拿 4~5 星的好评当素材
 
   // ---- 大模型 ----
+  // 默认走 DeepSeek 官方（已在 manifest 的白名单里，不需要额外授权）；只有选了 AI 才会用到这几个值
   apiUrl: 'https://api.deepseek.com/v1/chat/completions',
   apiKey: '',
   modelName: 'deepseek-chat',

@@ -6,6 +6,10 @@
 
 > 📖 **第一次用请先看 → [使用教程.md](使用教程.md)**（装扩展 / 先跑模拟 / 再切真实 / 会自动跳过哪些单 / 常见问题，图文步骤一条条来）。
 > 本 README 是**参考手册**：每个设置项的默认值、原理、排障都在这里。
+>
+> 🙏 **本扩展的代码不是凭空写的** —— 老链路移植自 `charmingYouYou/JDAIAutoComment`（MIT），
+> 评价池接口与路线取自 `hezhengtao/jd-smart-assistant`（MIT），新评价中心选择器参考 `liu-ws/Haoping`（MIT），
+> 并内嵌 jQuery 1.11.1（MIT）。**逐项出处、许可原文、行号对应见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。**
 
 ## 它做什么
 
@@ -34,7 +38,8 @@
 5. **文案来源保持默认的「只用现成评价」就不用填任何密钥**，直接能用；
    只有把文案来源改成 AI 时才需要填 API 密钥
 
-> 自建网关（比如 `http://192.168.2.20:6321`）要额外点一下设置页的「**授权当前接口地址**」。
+> **接口地址默认就是 DeepSeek 官方**（`https://api.deepseek.com/v1/chat/completions`，模型 `deepseek-chat`），不用改。
+> 只有换成自建网关（比如 `http://192.168.1.100:8000/v1`）时，才要额外点一下设置页的「**授权当前接口地址**」。
 
 ## 使用
 
@@ -94,7 +99,7 @@
 两个测试都会先保存你当前填的配置，测的就是你刚填的那一份。
 
 **大模型测试会自动帮你处理两件容易踩的事：**
-1. **自动申请接口域名的访问权限**——自建网关（如 `http://192.168.10.111:7864`）不在内置白名单里，不授权会直接 `Failed to fetch`；点「测试大模型」时会同步发起授权申请（已授权则不弹窗）。
+1. **自动申请接口域名的访问权限**——自建网关（如 `http://192.168.1.100:8000`）不在内置白名单里，不授权会直接 `Failed to fetch`；点「测试大模型」时会同步发起授权申请（已授权则不弹窗）。**用默认的 DeepSeek 官方地址不需要这一步**（`api.deepseek.com` 已在白名单里）。
 2. **自动补全接口地址**——只填到 `/v1`（甚至只填域名）都能用，会自动补成 `/v1/chat/completions`，结果里会显示「实际调用地址（已自动补全）」。
 
 **密钥必须是纯 ASCII**：HTTP 请求头只允许 ISO-8859-1，密钥里混进中文/全角空格时 `fetch` 会抛
@@ -237,6 +242,8 @@
 manifest.json          MV3 清单（权限：storage/tabs + 京东与常见大模型域名）
 使用教程.md            面向使用者的手把手教程（装 / 跑模拟 / 切真实 / 常见问题）
 README.md              本文件：参考手册
+THIRD-PARTY-NOTICES.md 来源与致谢：每段移植/参考代码的出处、许可原文与行号对应
+LICENSE                本项目自身的许可（MIT）
 icons/                 16/48/128 图标
 src/defaults.js        默认配置（改这里 = 改所有默认值）
 src/pacing.js          节奏与风控：随机区间 / 分块打字 / 计数校验 / 风控识别（纯函数，可单测）
@@ -280,6 +287,27 @@ src/options.html/js    设置页
 | 出问题想定位 | 点面板「下载」把日志存下来 —— 里面有每一步的文案字数、图片张数、页面认账情况、点击与反馈片段 |
 | 老评价页配图注入失败 | 京东偶尔改上传组件；先用「模拟」跑一单看面板提示，再据此改 `src/content.js` 里的 `findFileInputForSku` |
 | 新发布页找不到正文框 | 改 `newPublishStep()` 里的 `textarea.rate-comment-content-textarea` |
+
+## 来源与致谢（站在谁的肩膀上）
+
+**这个扩展不是凭空写的。** 老链路的流程与选择器是从一个 MIT 油猴脚本移植过来的，
+"免 AI、复用现成好评 + 买家秀图"这条路线是从另一个 MIT 油猴脚本学来的，新评价中心的选择器参考了一个 MIT 扩展。
+
+| 项目 | 许可 | 我们怎么用的 |
+|---|---|---|
+| [charmingYouYou/JDAIAutoComment](https://github.com/charmingYouYou/JDAIAutoComment) v8.6 | MIT © charmingYouYou | **移植其代码**：老评价链路（我的评价列表 → `orderVoucher` → `saveCommentSuccess`）、`.f-textarea textarea` / `.p-name` / `.star5` / `img[src*="imageUpload"]`、晒单图接口、开始/暂停闭环 |
+| [hezhengtao/jd-smart-assistant](https://github.com/hezhengtao/jd-smart-assistant) v4.1 | MIT © hezhengtao | **取其接口与路线**：「爬好评 + 晒单图、零 API 费用」的思路；评价池接口 `comment/productPageComments.action` 及参数组合 |
+| [liu-ws/Haoping（好评）](https://github.com/liu-ws/Haoping) v0.1.0 | MIT © 2026 好评 contributors | **参考其选择器**：新评价中心 `pc-static/{center,publish}`、`.scoreBox-conter-score-star-box-item`、`.rate-publish-submit-button` |
+| [jQuery](https://jquery.com/) 1.11.1 | MIT © jQuery Foundation | **原样内嵌** `src/jquery.min.js`（上游用 CDN `@require`，扩展受 CSP 限制不能远程加载脚本） |
+| [Goodnameisfordoggy/JD-AutomatedTools](https://github.com/Goodnameisfordoggy/JD-AutomatedTools) 3.2.4 | Apache-2.0 + 特别声明 | **只作设计参考，未取用代码**（Python 实现）："最小可评价单元"、商品/评价页不存在就跳过 |
+| [loinky/jd-review-assistant](https://github.com/loinky/jd-review-assistant) v0.7.0 | 未声明许可 | **只读 README 与目录，未取用代码** |
+| [Fzuim/jd-review-bot-skill](https://github.com/Fzuim/jd-review-bot-skill) | — | **只采纳结论，未取用代码**：表单只认真实键盘事件、必须先填文字再点星级 |
+
+👉 **每一处的文件与行号对应、MIT 许可原文、以及"哪些代码是我们自己原创的"，
+全部写在 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。**
+
+> **免责**：本项目仅供个人学习与自用，**请勿商用、请勿转载到公众号/自媒体**（这也是上游 JD-AutomatedTools 特别声明的要求）。
+> 自动化操作京东账号有触发风控的风险，风险自担；评价一经发布不可撤销。
 
 ## 与旧方案的关系
 

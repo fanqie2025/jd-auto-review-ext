@@ -253,7 +253,11 @@
     <pre class="out" id="testOutLlm"></pre>
     <div class="choices" id="modelChoices"></div>
     <div class="hint full">
-      自建网关（如 <code>http://192.168.x.x:7864</code>）第一次必须点一次「授权当前接口地址」（点「测试大模型」时也会自动申请）。
+      <b>默认就是 DeepSeek 官方</b>：接口地址 <code>https://api.deepseek.com/v1/chat/completions</code>、模型 <code>deepseek-chat</code>，
+      到 <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noreferrer">platform.deepseek.com</a> 拿一个密钥填上就能用。
+      想换 OpenAI / 智谱 GLM / 自建网关，改地址与模型名即可（同 OpenAI 格式都行）。<br />
+      自建网关（如 <code>http://192.168.1.100:8000/v1</code>）第一次必须点一次「授权当前接口地址」（点「测试大模型」时也会自动申请）；
+      默认的 <code>api.deepseek.com</code> 已在白名单里，<b>无需授权</b>。
     </div>
   </section>
 

@@ -5,6 +5,14 @@
  *   2. 抓京东晒单图接口（跨域：comment.m.jd.com 页面上取不到 club.jd.com）
  *   3. 抓 360buyimg 的图片字节并转 base64（页面里 fetch 会被 CORS 挡）
  * 页面里的填写 / 上传 / 点击全部由 content.js 完成。
+ *
+ * ── 来源与致谢（改动请一并保留本段）────────────────────────────────────────
+ * 晒单图接口 `club.jd.com/discussion/getProductPageImageCommentList.action`
+ *   与 charmingYouYou/JDAIAutoComment v8.6（MIT，© charmingYouYou）里的同一接口一致；
+ * 评价池接口 `club.jd.com/comment/productPageComments.action` 及其参数组合
+ *   取自 hezhengtao/jd-smart-assistant v4.1（MIT，© hezhengtao）——「爬好评+晒单图、零 API 费用」的路线也来自它。
+ * 完整出处、许可原文与逐条行号见仓库根 THIRD-PARTY-NOTICES.md。本项目仅供个人学习自用。
+ * ──────────────────────────────────────────────────────────────────────
  */
 importScripts('defaults.js');
 importScripts('log.js');
