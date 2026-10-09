@@ -367,5 +367,11 @@
     });
   });
 
+  // 标题上的版本号直接读 manifest —— 免得改了版本忘了改这里（以前就写死过一次）
+  try {
+    const badge = $('extVerBadge');
+    if (badge) badge.textContent = '测试版 v' + chrome.runtime.getManifest().version;
+  } catch (e) { /* ignore */ }
+
   load();
 })();

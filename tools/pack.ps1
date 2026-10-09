@@ -32,12 +32,17 @@ if (-not (Test-Path $OutDir)) { New-Item -ItemType Directory -Path $OutDir -Forc
 $baseName = "$name-v$version"
 $zipPath = Join-Path $OutDir "$baseName.zip"
 $jarPath = Join-Path $OutDir "$baseName.jar"
+# 上传 Release 用的一份：**不带版本号**，这样文档里的直链
+#   https://github.com/<owner>/<repo>/releases/latest/download/<name>.zip
+# 永远有效，不用每次发版都去改文档（2026-10-09 加）
+$relZip = Join-Path $OutDir "$name.zip"
+$relJar = Join-Path $OutDir "$name.jar"
 
 # 不打包进去的东西：版本库目录、打包工具自身、上一次的产物
 $skipDir = @('.git', 'tools', 'node_modules')
 $skipExt = @('.zip', '.jar')
 
-foreach ($p in @($zipPath, $jarPath)) { if (Test-Path $p) { Remove-Item $p -Force } }
+foreach ($p in @($zipPath, $jarPath, $relZip, $relJar)) { if (Test-Path $p) { Remove-Item $p -Force } }
 
 $files = Get-ChildItem $root -Recurse -File | Where-Object {
   $rel = $_.FullName.Substring($root.Length + 1)
@@ -57,6 +62,8 @@ try {
 } finally { $zip.Dispose() }
 
 Copy-Item $zipPath $jarPath -Force
+Copy-Item $zipPath $relZip -Force
+Copy-Item $zipPath $relJar -Force
 
 $zipLen = (Get-Item $zipPath).Length
 $sha = (Get-FileHash $zipPath -Algorithm SHA256).Hash
@@ -65,22 +72,26 @@ $same = (Get-FileHash $jarPath -Algorithm SHA256).Hash -eq $sha
 if (-not $Quiet) {
   Write-Host ''
   Write-Host "打包完成（$($files.Count) 个文件）" -ForegroundColor Green
-  Write-Host "  ZIP : $zipPath"
-  Write-Host "  JAR : $jarPath"
-  Write-Host ("  大小: {0:N0} 字节   两份内容一致: {1}" -f $zipLen, $same)
+  Write-Host "  归档用（带版本号）: $zipPath"
+  Write-Host "                      $jarPath"
+  Write-Host "  上传用（不带版本号，直链永久有效）: $relZip"
+  Write-Host "                                      $relJar"
+  Write-Host ("  大小: {0:N0} 字节   四份内容一致: {1}" -f $zipLen, $same)
   Write-Host "  SHA256: $sha"
   Write-Host ''
-  Write-Host '上传到 GitHub Release：' -ForegroundColor Cyan
+  Write-Host '上传到 GitHub Release（传"不带版本号"那两个）：' -ForegroundColor Cyan
   Write-Host "  https://github.com/fanqie2025/jd-auto-review-ext/releases"
   Write-Host ''
 }
 
 [pscustomobject]@{
-  Version = $version
-  Files   = $files.Count
-  Zip     = $zipPath
-  Jar     = $jarPath
-  Bytes   = $zipLen
-  Sha256  = $sha
+  Version   = $version
+  Files     = $files.Count
+  Zip       = $zipPath
+  Jar       = $jarPath
+  ReleaseZip = $relZip
+  ReleaseJar = $relJar
+  Bytes     = $zipLen
+  Sha256    = $sha
   Identical = $same
 }

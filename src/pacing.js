@@ -238,6 +238,50 @@
     return '';
   }
 
+  /**
+   * 从「元素自己 → 各级祖先」的文本列表里，挑出**一张卡片**的文本。
+   *
+   * 为什么必须有这个上界（2026-10-09 实测事故）：
+   *   跳过 1 单时把"列表容器"（装了很多张卡片的那个 div）的文本当成了商品名存成指纹，
+   *   那个文本是 3 张卡片拼起来的；下一轮列表页用这条指纹去匹配，**一次误伤 3 张无关卡片**
+   *   （把它们的「去评价」全过滤掉），剩下的候选只剩卡片容器本身 —— 点它没有任何反应，
+   *   于是"点不动 → 跳过 → 回列表"无限循环，一张评价都发不出去。
+   *
+   * 判据：文本长度落在 [minLen, maxLen]，并且里面的**标记词**（就是刚点的那个按钮文字，
+   * 例如「去评价」）出现次数不超过 markerMax —— 出现两次以上就说明这个节点装了好几张卡片。
+   * 按「自己 → 祖先」的顺序找，第一个合格的即为该卡片。
+   *
+   * @param {string[]} texts 元素自己、父元素、祖父元素……的文本（已归一化）
+   * @param {{minLen?:number,maxLen?:number,marker?:string,markerMax?:number}} [opts]
+   * @returns {string} 命中的卡片文本；没有合格的（说明已经走到列表容器了）返回 ''
+   */
+  function pickCardText(texts, opts) {
+    const o = opts || {};
+    const min = Math.max(1, Number(o.minLen) || 6);
+    const max = Math.max(min, Number(o.maxLen) || 400);
+    const marker = o.marker ? String(o.marker) : '';
+    const hasCap = (o.markerMax != null) && isFinite(Number(o.markerMax));
+    const cap = hasCap ? Number(o.markerMax) : 1;
+    const list = texts || [];
+    for (let i = 0; i < list.length; i++) {
+      const t = String(list[i] == null ? '' : list[i]);
+      if (t.length < min) continue;
+      if (t.length > max) return '';           // 已经比一张卡片还大，再往上只会更大 → 放弃
+      if (marker) {
+        let n = 0, from = 0;
+        for (;;) {
+          const at = t.indexOf(marker, from);
+          if (at === -1) break;
+          n++; from = at + marker.length;
+          if (n > cap) break;
+        }
+        if (n > cap) return '';                // 装了不止一张卡片 → 这就是列表容器，放弃
+      }
+      return t;
+    }
+    return '';
+  }
+
   /** 商品名里的"噪音"：空白、标点、括号、引号、斜杠 —— 指纹与卡片比对必须用同一套归一化，
       否则「鲜窝窝酸梅条，150g」这类带逗号的名字存下来的指纹在卡片文本里匹配不上。 */
   const NAME_NOISE = /[\s，。！？；、,.!?;:：()（）\[\]【】/\\|"'“”‘’《》<>+~\-—_]+/g;
@@ -305,6 +349,7 @@
     runLimitHit: runLimitHit,
     nameKey: nameKey,
     normalizeName: normalizeName,
+    pickCardText: pickCardText,
     isSkippedText: isSkippedText,
     looksUnreviewable: looksUnreviewable,
     UNREVIEWABLE_PATTERNS: UNREVIEWABLE_PATTERNS,

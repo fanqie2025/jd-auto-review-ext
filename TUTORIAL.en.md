@@ -1,4 +1,4 @@
-# Tutorial · JD Auto Review (image + 60 characters) — Beta v0.1.0
+# Tutorial · JD Auto Review (image + 60 characters) — Beta v0.1.1
 
 > **English** · [中文使用教程](使用教程.md)
 > ｜ 📥 **Download**: [GitHub Releases page](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest)
@@ -17,12 +17,12 @@ What it does: **it takes real reviews that other buyers already published for th
 
 **Step 0 · download first**
 👉 Open the **[Releases page](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest)** and click
-`jd-auto-review-ext-v0.1.0.zip` under **Assets**. (The release also has `jd-auto-review-ext-v0.1.0.jar` —
+`jd-auto-review-ext.zip` under **Assets**. (The release also has `jd-auto-review-ext.jar` —
 **byte-identical**, just a different suffix; Chrome uses the `.zip` one.)
 
-Direct links without opening the page:
-[zip](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest/download/jd-auto-review-ext-v0.1.0.zip) ·
-[jar](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest/download/jd-auto-review-ext-v0.1.0.jar)
+Direct links without opening the page (**these always point at the newest release**):
+[zip](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest/download/jd-auto-review-ext.zip) ·
+[jar](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest/download/jd-auto-review-ext.jar)
 
 1. Unzip the whole `jd-auto-review-ext` folder to a **permanent location** (e.g. `D:\jd-auto-review-ext`).
    Do **not** leave it in Downloads — the browser loads the extension from this folder live; if the folder disappears the extension breaks.
@@ -46,7 +46,7 @@ Direct links without opening the page:
    - New review center: `https://comment.m.jd.com/pc-static/center`
    - Legacy pending list: `https://club.jd.com/myJdcomments/myJdcomment.action?sort=0`
 2. A panel appears in the **bottom-left** corner (drag its title bar to move it; the position is remembered).
-3. Check the version next to the title: it should read **`v0.1.0 · 测试版`**. If not, the page still runs the old script → click **Reload** on `chrome://extensions`, then press F5 on the JD page.
+3. Check the version next to the title: it should read **`v0.1.1 · 测试版`**. If not, the page still runs the old script → click **Reload** on `chrome://extensions`, then press F5 on the JD page.
 4. Set mode to **模拟 (Simulate)**, set the limit to **`1`**, click **开始 (Start)**.
 5. Watch it: it clicks into the first order → fills the text → sets 5 stars → uploads images → then **stops before submitting** with `🧪 模拟模式…没有点发布`.
 6. **Look at the page by hand**: is the text ≥60 characters, does it read naturally, any `&ldquo;` garbage, are 2–3 images attached?
@@ -74,7 +74,7 @@ Direct links without opening the page:
 | **上限 [ N ] 条评价** | Max **reviews published** this run. Counted in *reviews*, not orders (one order can contain several items, and one publish can produce several reviews). `0` = unlimited |
 | **保存 (Save)** | Writes the current "mode + limit" back to the options page as the new default |
 | **开始 / 暂停** | Start / stop with the current mode |
-| Title bar, left | Version number (should be `v0.1.0`) |
+| Title bar, left | Version number (should be `v0.1.1`) |
 | Title bar, **⭐** | Opens this project on GitHub — please give it a Star |
 | Title bar, **设置** | Opens the extension options page |
 | Log area | Collapse / Copy / Download / Clear. **When something goes wrong, click Download** and send me the txt |
@@ -137,7 +137,7 @@ Other hard rules:
 | No panel on the page | The page is not supported (only `club.jd.com` / `comment.m.jd.com`), or the extension is disabled |
 | "后台无响应（扩展可能被重新加载）" | You clicked Reload on the extensions page → **press F5 on the JD page** |
 | "扩展刚被重新加载过，本页面里的旧脚本已失效" | Same as above: F5 |
-| Version is not `v0.1.0` | Reload the extension on `chrome://extensions`, then F5 on the JD page |
+| Version is not `v0.1.1` | Reload the extension on `chrome://extensions`, then F5 on the JD page |
 | It says an API key is missing | **Keep "文案来源 = 现成评价" and no key is needed**; only the AI mode needs one. Then the endpoint is **already filled in as DeepSeek official** (`https://api.deepseek.com/v1/chat/completions`, model `deepseek-chat`) — just paste the key |
 | Clicking "去评价" does nothing | It retries and writes a log; if it happens for several orders in a row, send me the log |
 | Takeout / service orders keep being skipped | By design (skips do not count toward the limit). If the list is only such orders, it finishes all cards and then reports "no pending cards" |

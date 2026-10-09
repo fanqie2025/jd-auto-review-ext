@@ -863,6 +863,17 @@
   }
 
   function installOpenGuard() {
+    // 正常情况：src/openguard.js 已经在 document_start 装好了 —— 必须那么早，
+    // 否则拦不住页面在启动时缓存起来的原生 window.open 引用（2026-10-09 实测：晚了就每单开一个新标签页）。
+    // 这里只登记一个日志回调，让"拦到 window.open"这件事也能进面板日志。
+    if (window.__JDAR_OPEN_GUARD__) {
+      window.__JDAR_ON_OPEN__ = function (target) {
+        logInfo('拦到 window.open，改成原地跳转', {
+          url: window.JDAR_LOG ? window.JDAR_LOG.tail(String(target), 80) : String(target)
+        });
+      };
+      return;
+    }
     if (OPEN_GUARDED) return;
     if (CFG.blockPopups === false) { uninstallOpenGuard(); return; }
     try {
@@ -881,8 +892,13 @@
   }
 
   function uninstallOpenGuard() {
-    if (!OPEN_GUARDED || !ORIG_OPEN) return;
-    try { window.open = ORIG_OPEN; } catch (e) { /* ignore */ }
+    // 必须还原成**原生** open：openguard.js 把原生引用存在 __JDAR_NATIVE_OPEN__ 里。
+    // 否则这里会把我们自己的假 open 当成"原生"还原回去，设置页那个开关就失效了。
+    try {
+      const native = window.__JDAR_NATIVE_OPEN__ || ORIG_OPEN;
+      if (native) window.open = native;
+      window.__JDAR_OPEN_GUARD__ = false;
+    } catch (e) { /* ignore */ }
     OPEN_GUARDED = false;
   }
 
@@ -1082,10 +1098,19 @@
   function clickCandidates(text) {
     const list = [];
     const push = function (el) { if (el && list.indexOf(el) === -1) list.push(el); };
+    // 只有当祖先"还像一张卡片"时才收它 —— 标记词出现两次以上就是装很多张卡片的列表容器，
+    // 点它不会有任何反应（2026-10-09 实测：被过滤后它成了 cands[0]，点了没反应，整轮卡死）
+    const likeOneCard = function (el) {
+      if (!PACING.pickCardText) return true;
+      return !!PACING.pickCardText([normText(el.textContent)], { minLen: 2, maxLen: 400, marker: text, markerMax: 1 });
+    };
     innermostByText(text, false).slice(0, 3).forEach(function (el) {
       push(el);
       let p = el.parentElement, depth = 0;
-      while (p && depth < 4 && p !== document.body) { push(p); p = p.parentElement; depth++; }
+      while (p && depth < 4 && p !== document.body) {
+        if (!likeOneCard(p)) break;
+        push(p); p = p.parentElement; depth++;
+      }
     });
     return list;
   }
@@ -1097,7 +1122,9 @@
     let i = 0;
     const attempt = function () {
       if (i >= candidates.length || i >= limit) {
-        logErr(label + '：点了候选但本页没跳转', { href: location.href, 试了几个: i });
+        // 用 WARN 不用 ERROR：这**不一定是故障** —— 页面很可能把跳转开在了新标签页里，
+        // 由调用方（handleListClickFailed）去判断"是不是故障"。以前记成 ERROR，日志看着像崩了。
+        logWarn(label + '：点了候选，本页没有跳转', { href: location.href, 试了几个: i });
         if (onFail) onFail();
         return;
       }
@@ -1158,22 +1185,44 @@
     clearLastCard();
   }
 
-  /** 列表页里"跳过过的商品"就别再点了，否则会一直绕回同一个商品 */
-  function isSkippedCard(el) {
-    if (!Object.keys(skipNames).length) return false;
+  /** 元素自己 + 各级祖先的文本（已归一化），给 pickCardText 用 */
+  function ancestorTexts(el, maxDepth) {
+    const out = [];
     let node = el, depth = 0;
-    while (node && node !== document.body && depth < 7) {
-      const t = normText(node.textContent);
-      if (t && t.length < 300 && PACING.isSkippedText && PACING.isSkippedText(t, skipNames)) return true;
+    const limit = Number(maxDepth) || 8;
+    while (node && node !== document.body && depth < limit) {
+      out.push(normText(node.textContent));
       node = node.parentElement;
       depth++;
     }
-    return false;
+    return out;
   }
 
-  function filterSkipped(cands) {
+  /**
+   * 取出"这一张卡片"的文本（跳过指纹用）。marker 就是刚点的按钮文字（如「去评价」）。
+   *
+   * ⚠️ 2026-10-09 事故：以前这里只要祖先文本 ≥6 字就返回，结果一路走到了**装很多张卡片的列表容器**，
+   * 把 3 张卡片拼起来的文本当成了"商品名"存进 skipNames → 下一轮一次误伤 3 张无关卡片 → 整轮卡死。
+   * 现在交给纯函数 PACING.pickCardText：长度 + 标记词出现次数双重设限，走到容器就返回 ''（宁可不记指纹）。
+   */
+  function cardText(el, marker) {
+    if (PACING.pickCardText) {
+      return PACING.pickCardText(ancestorTexts(el, 8), { minLen: 6, maxLen: 400, marker: marker || '', markerMax: 1 });
+    }
+    return normText(el && el.textContent);
+  }
+
+  /** 列表页里"跳过过的商品"就别再点了，否则会一直绕回同一个商品 */
+  function isSkippedCard(el, marker) {
+    if (!Object.keys(skipNames).length) return false;
+    const card = cardText(el, marker);
+    if (!card) return false;        // 认不出单张卡片（已经走到列表容器）→ 不做匹配，避免误伤一片
+    return !!(PACING.isSkippedText && PACING.isSkippedText(card, skipNames));
+  }
+
+  function filterSkipped(cands, marker) {
     const all = cands || [];
-    const keep = all.filter(function (el) { return !isSkippedCard(el); });
+    const keep = all.filter(function (el) { return !isSkippedCard(el, marker); });
     if (keep.length !== all.length) {
       logInfo('列表页跳过了 ' + (all.length - keep.length) + ' 个"已经跳过过"的商品');
     }
@@ -1223,18 +1272,6 @@
     goBackToList();
   }
 
-  /** 从卡片里的某个元素往上找一段能代表这张卡片的文本（当跳过指纹用） */
-  function cardText(el) {
-    let node = el, depth = 0;
-    while (node && node !== document.body && depth < 6) {
-      const t = normText(node.textContent);
-      if (t && t.length >= 6) return t.length > 160 ? t.slice(0, 160) : t;
-      node = node.parentElement;
-      depth++;
-    }
-    return normText(el && el.textContent);
-  }
-
   /** 当前页面文本有没有明说"不能评价"（外卖/服务单、已评价过的单、活动结束） */
   function unreviewableHere() {
     try {
@@ -1259,33 +1296,53 @@
 
   /**
    * 列表页点了卡片但本页没跳转。两种可能：
-   *   ① 页面自己开在新标签页了 —— 由那个标签页接手（所以先交出运行权）
+   *   ① 页面把「去评价」开在了新标签页 —— 由那个标签页接手（所以先交出运行权）
    *   ② 这种单根本点不进去（外卖单、服务单、已评价的单）—— 跳过它，回列表继续
-   * 先让权，8 秒后如果没有任何标签页接手，就按 ② 处理。
+   *
+   * 节奏：2.5 秒先看一眼（新标签页通常 1 秒内就把租约接走了，这时**安静停手**即可，
+   * 不该报错、也不该白等满 8 秒）；真没人接手，再等 5.5 秒后判定 ② 并跳过。
    */
   function handleListClickFailed(label, cardEl) {
-    const name = cardText(cardEl);
+    const name = cardText(cardEl, label);
     STOP_THIS_TAB = true;
     releaseLease();
+
+    // 认不出是哪张卡片 → **不记指纹、也不跳过**：记错了会一次误伤一整片卡片（2026-10-09 事故）。
+    // 宁可停下让人看一眼，也不要一边误伤一边空转。
+    if (!name) {
+      setRunning(false);
+      logWarn('点了列表卡片但本页没跳转，且认不出是哪张卡片 → 不记指纹、停下', {
+        按钮: label, 类名: String((cardEl && cardEl.className) || '').slice(0, 60), 本页tabId: MY_TAB
+      });
+      updateStatus('点了「' + label + '」没反应，又认不出是哪张卡片，已停下避免空转。' +
+        '刷新页面再点「开始」；若每单都这样，把面板日志下载发我。', '#e4393c');
+      return;
+    }
+
     logWarn('点了列表卡片但本页没跳转', {
-      按钮: label, 卡片: String(name || '').slice(0, 40), 本页tabId: MY_TAB
+      按钮: label, 卡片: name.slice(0, 40), 本页tabId: MY_TAB
     });
     updateStatus('点了「' + label + '」但本页没跳转，先交出运行权（若开了新标签页，由那个标签页继续）…', '#b7791f');
     setTimeout(function () {
       if (!running) return;
       tryAcquireLease().then(function (yes) {
         if (!yes) {
-          logInfo('已有其他标签页接手，本页保持停手');
+          logInfo('已有其他标签页接手（页面把「去评价」开在了新标签页），本页保持停手');
           return;
         }
-        STOP_THIS_TAB = false;
-        startLeaseTimer();
-        logInfo('8 秒内没有任何标签页接手 → 判定这一单点不进去，跳过它', {
-          卡片: String(name || '').slice(0, 40)
-        });
-        skipThisOrder(name, '', 'unreviewable', 40);
+        // 租约还空着：再给 5.5 秒（合计约 8 秒），仍然没人接手才判定"点不进去"
+        setTimeout(function () {
+          if (!running) return;
+          tryAcquireLease().then(function (yes2) {
+            if (!yes2) { logInfo('已有其他标签页接手，本页保持停手'); return; }
+            STOP_THIS_TAB = false;
+            startLeaseTimer();
+            logInfo('没有标签页接手 → 判定这一单点不进去，跳过它', { 卡片: name.slice(0, 40) });
+            skipThisOrder(name, '', 'unreviewable', 40);
+          });
+        }, 5500);
       });
-    }, 8000);
+    }, 2500);
   }
 
   /* ---------- 「我上一次点的是哪张卡片」：跨页面记住，兜住"点进去发现没法评价" ----------
@@ -1305,8 +1362,8 @@
     });
   }
 
-  function rememberCard(cardEl) {
-    const t = cardText(cardEl);
+  function rememberCard(cardEl, marker) {
+    const t = cardText(cardEl, marker);
     lastCardText = t ? t.slice(0, 160) : '';
     lastCardAt = lastCardText ? Date.now() : 0;
     storageSet({ [LASTCARD_KEY]: { text: lastCardText, at: lastCardAt } });
@@ -1886,13 +1943,13 @@
           return normText($(this).clone().children().remove().end().text()) === '评价';
         });
         let cands = $btn.length ? [$btn[0]] : [];
-        if (!cands.length) cands = filterSkipped(clickCandidates('去评价').concat(clickCandidates('评价')));
+        if (!cands.length) cands = filterSkipped(clickCandidates('去评价').concat(clickCandidates('评价')), '评价');
         if (!cands.length) {
           setRunning(false);
           updateStatus('🎉 待评价列表已空，循环结束。⭐ 觉得好用的话，点标题栏的 ⭐ 给个 Star。', 'green');
           return;
         }
-        rememberCard(cands[0]);   // 先记下这张卡片：万一跳过去是个"没法评价"的页面，才知道该跳过谁
+        rememberCard(cands[0], '评价');   // 先记下这张卡片：万一跳过去是个"没法评价"的页面，才知道该跳过谁
         clickUntilNavigates(cands, '进入下一单评价', function () {
           handleListClickFailed('评价', cands[0]);
         }, 1);
@@ -1920,13 +1977,13 @@
         : ('本单结束。按防风控节奏休息 ' + g.dur + ' 再进下一单，期间什么都不点。'), 'blue');
       countdownThen(g.gap, g.first ? '开始第 1 单' : '进入下一单评价（新评价中心）', function () {
         if (haltIfPaused(newCenterListStep)) return;
-        const cands = filterSkipped(clickCandidates('去评价'));
+        const cands = filterSkipped(clickCandidates('去评价'), '去评价');
         if (!cands.length) {
           setRunning(false);
           updateStatus('🎉 新评价中心没有待评价卡片了，循环结束。⭐ 觉得好用的话，点标题栏的 ⭐ 给个 Star。', 'green');
           return;
         }
-        rememberCard(cands[0]);   // 先记下这张卡片：万一跳过去是个"没法评价"的页面，才知道该跳过谁
+        rememberCard(cands[0], '去评价');   // 先记下这张卡片：万一跳过去是个"没法评价"的页面，才知道该跳过谁
         clickUntilNavigates(cands, '进入下一单评价（新评价中心）', function () {
           handleListClickFailed('去评价', cands[0]);
         }, 1);

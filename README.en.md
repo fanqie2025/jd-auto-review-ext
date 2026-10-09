@@ -1,4 +1,4 @@
-# JD Auto Review (image + 60 chars) — Chrome/Edge extension · Beta v0.1.0
+# JD Auto Review (image + 60 chars) — Chrome/Edge extension · Beta v0.1.1
 
 **English** · [中文说明](README.md) ｜ Tutorial: [English](TUTORIAL.en.md) · [中文](使用教程.md)
 ｜ 📥 **Download**: [GitHub Releases page](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest)
@@ -35,12 +35,13 @@ A standalone **Manifest V3 extension** that ports the old Tampermonkey approach 
 ## Install (Chrome / Edge, ~30 seconds)
 
 > 📥 **Step 0 · Download**: open the **[Releases page](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest)**
-> and download `jd-auto-review-ext-v0.1.0.zip` from **Assets**.
-> The same release also ships `jd-auto-review-ext-v0.1.0.jar` — a byte-identical copy with a different extension
+> and download `jd-auto-review-ext.zip` from **Assets**.
+> The same release also ships `jd-auto-review-ext.jar` — a byte-identical copy with a different extension
 > (Chrome loads the `.zip`; use whichever suffix you prefer). Then **unzip** it to get a `jd-auto-review-ext` folder.
 >
-> Direct links: [zip](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest/download/jd-auto-review-ext-v0.1.0.zip) ·
-> [jar](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest/download/jd-auto-review-ext-v0.1.0.jar)
+> Direct links (no page needed; **these two always point at the newest release**):
+> [zip](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest/download/jd-auto-review-ext.zip) ·
+> [jar](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest/download/jd-auto-review-ext.jar)
 
 1. Unzip the archive to a permanent folder (do not leave it in Downloads — the browser reads the extension from this folder live).
 2. Open `chrome://extensions` (Edge: `edge://extensions`) → enable **Developer mode**.
@@ -205,6 +206,45 @@ Two things the AI test handles for you automatically:
 **When something goes wrong, download the log and send it — it pinpoints exactly where it stalled.**
 
 ---
+
+## Changelog
+
+### v0.1.1 (2026-10-09) — fixes an infinite-skip loop
+
+**Symptom**: the log repeats `列表页跳过了 3 个"已经跳过过"的商品` → `点了候选但本页没跳转` →
+`判定这一单点不进去，跳过它` → back to the list → forever. Nothing ever gets published.
+
+**Root cause (three linked bugs)**:
+
+1. When skipping an order, the fingerprint helper walked **up to the list container** that holds many
+   cards, so the stored "product name" was actually **three cards concatenated**;
+2. On the next round, the list page matched that fingerprint and **filtered out three unrelated cards**
+   (removing their 「去评价」 buttons);
+3. With the good candidates gone, the first remaining candidate was the **card container itself** —
+   clicking it does nothing → wait 8 s → "skip" again → infinite loop.
+
+**Fixes**:
+
+- The fingerprint is now taken **within a single card**: a length bound plus a
+  **marker-word (e.g. 「去评价」) occurrence count ≤1**; if a node contains the marker twice or more it is
+  recognised as the list container and **no fingerprint is stored**. Extracted as the pure function
+  `PACING.pickCardText()` with **11 unit tests**, including a regression case for this incident.
+- When the card cannot be identified, **nothing is stored and the run stops with a message** —
+  better to stop than to poison a whole screen of cards.
+- Candidate elements only climb to ancestors that still "look like one card".
+- **The popup guard now runs at `document_start`** (new `src/openguard.js`): previously `window.open` was
+  replaced at `document_idle`, but the page had already cached the **native reference** at startup —
+  so 「去评价」 still opened a new tab, the old tab waited 8 s for nothing, and a tab accumulated per order.
+  Replacing it before any page script runs actually works, so **the whole run stays in one tab**.
+- A list click that does not navigate is **no longer logged as ERROR**: a new tab taking over is normal,
+  and the tab stops quietly after 2.5 s instead of waiting the full 8 s.
+
+### v0.1.0 (2026-10-09) — first public beta
+
+No AI and no API key needed: text is recombined from real published reviews, images come from those
+reviews' buyer photos; orders that cannot be reviewed (takeout/service/already-reviewed) and orders
+with no usable image are skipped without counting toward the limit; one driver tab at a time;
+Simulate by default; bilingual docs.
 
 ## Credits
 
