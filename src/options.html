@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>京东自动评价 · 设置</title>
+  <style>
+    /* 同一套设计规范（hairline 分隔 + 单一强调色 + 负字距标题 + 紧凑信息密度），
+       这里是【浅色版】：浅灰画布、纯白卡片。 */
+    :root {
+      --canvas: #f6f7f9;
+      --surface-1: #ffffff;
+      --surface-2: #f2f4f7;
+      --surface-3: #eceff3;
+      --hairline: #e3e6ea;
+      --hairline-strong: #cfd4da;
+      --ink: #16181d;
+      --ink-muted: #444a52;
+      --ink-subtle: #6b727b;
+      --ink-tertiary: #9aa0a7;
+      --primary: #5e6ad2;
+      --primary-hover: #4d59c4;
+      --on-primary: #ffffff;
+      --success: #1f8a3b;
+      --danger: #d93a3f;
+      --warn: #b7791f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font: 400 13px/1.55 Inter, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 28px 24px 72px; }
+
+    header.top { margin-bottom: 20px; }
+    h1 { margin: 0 0 4px; font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
+    .sub { color: var(--ink-subtle); font-size: 12.5px; }
+
+    section {
+      background: var(--surface-1);
+      border: 1px solid var(--hairline);
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin-bottom: 14px;
+    }
+    h2 { margin: 0 0 14px; font-size: 13px; font-weight: 600; letter-spacing: -0.1px; color: var(--ink); }
+    h2 .hint-inline { font-weight: 400; color: var(--ink-tertiary); margin-left: 8px; font-size: 11.5px; }
+
+    .row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+    .row:last-child { margin-bottom: 0; }
+    .row > label.k, .row > .k { width: 186px; flex: 0 0 186px; font-size: 12.5px; color: var(--ink-muted); }
+    .row .sep { color: var(--ink-tertiary); }
+
+    input[type=text], input[type=password], input[type=number], textarea, select {
+      flex: 1 1 auto;
+      min-width: 180px;
+      background: var(--surface-2);
+      border: 1px solid var(--hairline);
+      border-radius: 8px;
+      color: var(--ink);
+      font: inherit;
+      font-size: 12.5px;
+      padding: 7px 10px;
+      outline: none;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(94, 106, 210, .22);
+      background: var(--surface-1);
+    }
+    input::placeholder { color: var(--ink-tertiary); }
+    textarea { min-height: 64px; resize: vertical; }
+    select { cursor: pointer; }
+
+    .check { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 10px; font-size: 12.5px; color: var(--ink-muted); }
+    .check input[type=checkbox] { width: 15px; height: 15px; margin-top: 2px; accent-color: var(--primary); flex: 0 0 auto; }
+
+    .hint { font-size: 11.5px; color: var(--ink-subtle); margin: -6px 0 12px 196px; line-height: 1.6; }
+    .hint.full { margin-left: 0; }
+
+    button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--hairline-strong);
+      background: var(--surface-1);
+      color: var(--ink-muted);
+      font: 500 12.5px/1 Inter, -apple-system, "Microsoft YaHei", sans-serif;
+      cursor: pointer;
+      transition: background .12s ease, border-color .12s ease, color .12s ease;
+    }
+    button:hover { background: var(--surface-2); color: var(--ink); }
+    button.primary { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+    button.primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); color: var(--on-primary); }
+
+    #msg { font-size: 12px; margin-left: 4px; }
+
+    code {
+      background: var(--surface-2);
+      border: 1px solid var(--hairline);
+      padding: 1px 5px;
+      border-radius: 5px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, Menlo, monospace;
+      font-size: 11.5px;
+      color: var(--ink-muted);
+    }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .steps { font-size: 12.5px; color: var(--ink-muted); line-height: 1.95; }
+    .steps b { color: var(--ink); font-weight: 600; }
+
+    pre.out {
+      display: none;
+      max-height: 280px;
+      overflow: auto;
+      margin: 10px 0 0;
+      background: var(--surface-2);
+      border: 1px solid var(--hairline);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, Menlo, monospace;
+      font-size: 11.5px;
+      line-height: 1.6;
+      color: var(--ink-muted);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .choices {
+      display: none;
+      margin: 10px 0 0;
+      padding: 10px;
+      background: var(--surface-2);
+      border: 1px solid var(--hairline);
+      border-radius: 8px;
+      max-height: 172px;
+      overflow: auto;
+    }
+    .choices .tip { font-size: 11px; color: var(--ink-tertiary); margin-bottom: 8px; }
+    .choices button {
+      margin: 0 6px 6px 0;
+      padding: 5px 10px;
+      font-size: 11.5px;
+      border-radius: 999px;
+      background: var(--surface-1);
+    }
+    .choices button.cur { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+
+    .open-links a { font-family: ui-monospace, SFMono-Regular, Consolas, Menlo, monospace; font-size: 11.5px; }
+    .footer { display: flex; align-items: center; gap: 10px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>京东自动评价</h1>
+    <div class="sub">默认免 AI、免密钥：文案取同款商品别人已发布的真实评价，图片取那些评价自带的买家秀。默认模式 <b>模拟</b>（只填不提交）。</div>
+  </header>
+
+  <section>
+    <h2>去京东评价页</h2>
+    <div class="row">
+      <button class="primary" id="openJdNew" type="button">打开「评价中心」（新版）</button>
+      <button id="openJdOld" type="button">打开「待评价订单」（老版）</button>
+      <button id="openJdOrders" type="button">打开「我的订单」</button>
+    </div>
+    <div class="steps open-links" style="line-height:2">
+      新版：<a href="https://comment.m.jd.com/pc-static/center" data-jd="1">https://comment.m.jd.com/pc-static/center</a><br />
+      老版：<a href="https://club.jd.com/myJdcomments/myJdcomment.action?sort=0" data-jd="1">https://club.jd.com/myJdcomments/myJdcomment.action?sort=0</a><br />
+      订单：<a href="https://order.jd.com/center/list.action" data-jd="1">https://order.jd.com/center/list.action</a>
+    </div>
+    <div class="hint full" style="margin-top:10px">
+      打开后页面左下角出现面板（配色默认跟页面走，白页面 = 浅色面板）。
+      面板上可切 <b>模拟 / 真实</b>、填<b>上限条数</b>、点「保存」写回这份设置。
+    </div>
+  </section>
+
+  <section>
+    <h2>模式与链路</h2>
+    <div class="row">
+      <label class="k" for="dryRun">默认模式</label>
+      <select id="dryRun">
+        <option value="sim">模拟 —— 只填正文/星级/图片，不点发表</option>
+        <option value="real">真实 —— 会点发表（评价不可撤销）</option>
+      </select>
+    </div>
+    <div class="row">
+      <label class="k" for="maxPerRun">默认上限条数</label>
+      <input type="number" id="maxPerRun" min="0" max="99" step="1" />
+      <span class="sep" style="font-size:12px">条评价（0 = 不限）</span>
+    </div>
+    <div class="hint full" style="margin:-6px 0 12px">
+      按<b>评价条数</b>算，不是按订单数 —— 一个订单可能含多件商品，一次发表就会产出好几条评价。
+      检查发生在「点发表之前」，所以<b>一个订单里的多件商品会整单一起发完，不会被半路截断</b>（可能因此略微超过上限）。
+    </div>
+    <div class="check">
+      <input type="checkbox" id="supportNewCenter" />
+      <label for="supportNewCenter">同时支持京东新评价中心（<code>comment.m.jd.com</code>）</label>
+    </div>
+    <div class="hint full">这里是<b>默认值</b>；面板上临时改的只影响本次运行，面板里点「保存」才会写回这里。</div>
+  </section>
+
+  <section>
+    <h2>文案来源 <span class="hint-inline">默认免 AI</span></h2>
+    <div class="row">
+      <label class="k" for="textSource">来源</label>
+      <select id="textSource">
+        <option value="offline">只用现成评价（免密钥 · 推荐）</option>
+        <option value="hybrid">现成优先，凑不出字数再用 AI</option>
+        <option value="ai">只用 AI 生成</option>
+      </select>
+    </div>
+    <div class="row">
+      <label class="k" for="textComposeMode">组稿方式</label>
+      <select id="textComposeMode">
+        <option value="merge">随机抽素材拼成新评价（推荐 · 尽量不重复）</option>
+        <option value="single">直接用一条够长的现成评价（整条照搬）</option>
+        <option value="auto">先拼，拼不出才用单条</option>
+      </select>
+    </div>
+    <div class="row">
+      <label class="k">素材条数 / 正文上限</label>
+      <input type="number" id="textPoolSize" min="3" max="50" step="1" style="max-width:90px" title="组稿时随机抽几条好评当素材" />
+      <span class="sep">条素材，正文 ≤</span>
+      <input type="number" id="textMaxChars" min="60" max="500" step="10" style="max-width:90px" />
+      <span class="sep">字</span>
+    </div>
+    <div class="row"><label class="k" for="minScore">只取几星以上</label><input type="number" id="minScore" min="1" max="5" /></div>
+    <div class="row">
+      <button id="testPool" type="button">测试取现成评价</button>
+      <input type="text" id="testSku" value="10233255087903" placeholder="商品 SKU" style="max-width:220px" />
+      <span class="hint-inline">看能不能抓到该商品的图文评价</span>
+    </div>
+    <pre class="out" id="testOutPool"></pre>
+  </section>
+
+  <section>
+    <h2>大模型 <span class="hint-inline">只有选了 AI 才需要</span></h2>
+    <div class="row"><label class="k" for="apiUrl">接口地址</label><input type="text" id="apiUrl" placeholder="https://api.deepseek.com/v1（会自动补 /chat/completions）" /></div>
+    <div class="row"><label class="k" for="apiKey">API 密钥</label><input type="password" id="apiKey" placeholder="只能英文数字，不能有中文/全角字符" /></div>
+    <div class="row">
+      <label class="k" for="modelName">模型名</label>
+      <input type="text" id="modelName" list="modelList" placeholder="点右边「探测模型」，然后在下面点一下选中" />
+      <datalist id="modelList"></datalist>
+      <button id="probeModels" type="button">探测模型</button>
+    </div>
+    <div class="row">
+      <button id="testLlm" type="button">测试大模型</button>
+      <button id="grantPerm" type="button">授权当前接口地址</button>
+    </div>
+    <pre class="out" id="testOutModel"></pre>
+    <pre class="out" id="testOutLlm"></pre>
+    <div class="choices" id="modelChoices"></div>
+    <div class="hint full">
+      自建网关（如 <code>http://192.168.x.x:7864</code>）第一次必须点一次「授权当前接口地址」（点「测试大模型」时也会自动申请）。
+    </div>
+  </section>
+
+  <section>
+    <h2>硬性要求</h2>
+    <div class="row"><label class="k" for="minReviewChars">正文最少字数</label><input type="number" id="minReviewChars" min="10" max="500" /></div>
+    <div class="row"><label class="k" for="minReviewRetry">字数不足重试次数</label><input type="number" id="minReviewRetry" min="0" max="5" /></div>
+    <div class="row"><label class="k" for="imgPerProduct">固定张数（每单几张）</label><input type="number" id="imgPerProduct" min="1" max="9" /></div>
+    <div class="check"><input type="checkbox" id="imgRandomCount" /><label for="imgRandomCount"><b>张数随机</b>（在下面区间里随机，京东优质评价要求 ≥2 图）</label></div>
+    <div class="row">
+      <label class="k">随机张数区间</label>
+      <input type="number" id="imgCountMin" min="1" max="9" style="max-width:110px" />
+      <span class="sep">～</span>
+      <input type="number" id="imgCountMax" min="1" max="9" style="max-width:110px" />
+    </div>
+    <div class="row">
+      <label class="k" for="imgSourceMode">取图方式</label>
+      <select id="imgSourceMode">
+        <option value="random">整个评价池随机取（推荐）</option>
+        <option value="same">优先取「文案那条评价」自带的图</option>
+      </select>
+    </div>
+    <div class="check"><input type="checkbox" id="avoidReuseImage" /><label for="avoidReuseImage">同一轮内不重复用同一张图</label></div>
+    <div class="row">
+      <label class="k" for="imgUploadMode">图片上传方式</label>
+      <select id="imgUploadMode">
+        <option value="human">一张一张注入（每张之间随机停顿 · 推荐）</option>
+        <option value="instant">一次性全部注入</option>
+      </select>
+    </div>
+    <div class="row">
+      <label class="k">每批几张 · 批间隔（秒）</label>
+      <input type="number" id="imgUploadBatch" min="1" max="9" step="1" style="max-width:80px" title="每批注入几张" />
+      <span class="sep">张/批，间隔</span>
+      <input type="number" id="imgUploadGapMinSec" min="0" max="120" step="0.5" style="max-width:90px" />
+      <span class="sep">～</span>
+      <input type="number" id="imgUploadGapMaxSec" min="0" max="120" step="0.5" style="max-width:90px" />
+    </div>
+    <div class="row">
+      <label class="k">等上传完成（秒）</label>
+      <input type="number" id="imgUploadWaitMinSec" min="1" max="300" step="1" style="max-width:110px" />
+      <span class="sep">～</span>
+      <input type="number" id="imgUploadWaitMaxSec" min="1" max="300" step="1" style="max-width:110px" />
+    </div>
+    <div class="check"><input type="checkbox" id="enableImage" /><label for="enableImage">自动配图（抓同款商品的买家秀晒单图）</label></div>
+    <div class="row">
+      <label class="k" for="noImageAction">没法评价 / 没配到图时</label>
+      <select id="noImageAction">
+        <option value="skip">跳过这一单（不计入上限，继续下一单 · 推荐）</option>
+        <option value="pause">暂停，等我人工处理</option>
+        <option value="publish">无图也照发（没图也提交；"没法评价"的单仍然会跳过）</option>
+      </select>
+    </div>
+    <div class="hint full" style="margin:-6px 0 12px">
+      <b>跳过</b> = 不发表、<b>不计入上限</b>、回列表继续下一单，跳过的商品本轮不会再点它。<br />
+      会被当作「没法评价」直接跳过的：<b>京东外卖</b>、<b>服务类订单</b>、卡片点不进去的单、页面明说
+      「暂无可评价 / 已评价过 / 评价已关闭」的单，以及一张图都配不到的单。<br />
+      连续 <b>3 单都配不到图</b>时会自动停下（多半是图片池空了或上传入口变了），这时可以改成「无图也照发」。
+    </div>
+    <div class="row"><label class="k" for="fallbackTail">字数兜底结尾</label><textarea id="fallbackTail"></textarea></div>
+  </section>
+
+  <section>
+    <h2>节奏与防风控 <span class="hint-inline">宁慢勿快</span></h2>
+    <div class="row">
+      <label class="k">点击前等待（秒）</label>
+      <input type="number" id="clickDelayMinSec" min="0" max="600" step="1" style="max-width:110px" />
+      <span class="sep">～</span>
+      <input type="number" id="clickDelayMaxSec" min="0" max="900" step="1" style="max-width:110px" />
+    </div>
+    <div class="row">
+      <label class="k">同一单内步骤间停顿（秒）</label>
+      <input type="number" id="stepDelayMinSec" min="0" max="120" step="0.5" style="max-width:110px" />
+      <span class="sep">～</span>
+      <input type="number" id="stepDelayMaxSec" min="0" max="120" step="0.5" style="max-width:110px" />
+    </div>
+    <div class="row">
+      <label class="k">两单之间的休息（秒）</label>
+      <input type="number" id="orderDelayMinSec" min="0" max="3600" step="1" style="max-width:110px" />
+      <span class="sep">～</span>
+      <input type="number" id="orderDelayMaxSec" min="0" max="3600" step="1" style="max-width:110px" />
+    </div>
+    <div class="hint full" style="margin:-4px 0 12px">
+      单位是<b>秒</b>（程序内部自己换算成毫秒做随机）。「上一单做完 → 进下一单」之间的随机休息，<b>第 1 单不套用</b>（首单只等「点击前等待」）。想快就把两单之间改成 8 / 20。
+    </div>
+    <div class="row">
+      <label class="k" for="maxConcurrent">后台并发（同时跑几个标签页）</label>
+      <input type="number" id="maxConcurrent" min="1" max="5" step="1" />
+      <span id="mcWarn" style="display:none;font-size:11.5px;font-weight:500;color:#b3261e;background:rgba(217,58,63,.08);border:1px solid rgba(217,58,63,.35);border-radius:999px;padding:3px 9px;">已开启并发 · 风险</span>
+    </div>
+    <div class="hint full" style="margin:-6px 0 12px">
+      <b>默认关闭（1）</b>：同一时刻只允许一个标签页在跑，其他页只显示面板、<b>不操作也不提交</b>（避免两单同时上传、同时提交）。<br />
+      想开启并发（填 2~5）会先弹一次确认，确认后才会保存；开启后<b>多条评价会几乎同时提交、风控特征明显</b>。
+      驱动页每 10 秒续约，30 秒没心跳（页面被关/崩了）会被其他页接管，不会卡死。
+    </div>
+    <div class="row"><label class="k" for="uploadWaitTimeoutSec">等图片上传上限（秒）</label><input type="number" id="uploadWaitTimeoutSec" min="3" max="300" step="1" /></div>
+    <div class="check"><input type="checkbox" id="typeLikeHuman" /><label for="typeLikeHuman">分块打字（页面字数计数不认账时自动逐块重打）</label></div>
+    <div class="check"><input type="checkbox" id="riskStop" /><label for="riskStop">页面出现「正在维修 / 系统繁忙 / 安全验证」就立刻停手</label></div>
+    <div class="check"><input type="checkbox" id="blockPopups" /><label for="blockPopups"><b>把页面的「新开标签页」改成原地跳转</b>（关掉的话，扩展发出的点击会被 Chrome 弹窗拦截器挡住）</label></div>
+    <div class="row">
+      <label class="k" for="panelTheme">面板配色</label>
+      <select id="panelTheme">
+        <option value="auto">跟页面底色走（白页面用浅色 · 推荐）</option>
+        <option value="light">始终浅色</option>
+        <option value="dark">始终深色</option>
+      </select>
+    </div>
+  </section>
+
+  <section>
+    <h2>怎么用</h2>
+    <div class="steps">
+      1. <b>文案来源保持「只用现成评价」就不用填任何密钥</b>；只有选 AI 才需要填密钥，然后点「保存设置」。<br />
+      2. 用最上面那组按钮打开 <b>待评价列表</b>（老版 / 新版都行）。<br />
+      3. 面板里选 <b>模拟</b> 或 <b>真实</b>、填<b>上限条数</b>，点「开始」。模拟模式下它会填完停下、不提交。<br />
+      4. 人工核对浏览器里的表单，确认无误就把模式切成 <b>真实</b>（会弹确认框）再跑。<br />
+      5. 想停就点「暂停」；想改默认值就点面板上的「保存」。出问题点面板「下载」把日志发我。
+    </div>
+  </section>
+
+  <section>
+    <div class="row footer">
+      <button class="primary" id="save">保存设置</button>
+      <button id="reset" type="button">恢复默认</button>
+      <span id="msg"></span>
+    </div>
+  </section>
+</div>
+<script src="defaults.js"></script>
+<script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+# 打包产物（每次发版重新生成，不入库）
+*.zip
+*.jar
+
+# 系统/编辑器杂物
+Thumbs.db
+desktop.ini
+.DS_Store
+*.log

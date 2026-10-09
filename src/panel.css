@@ -1,0 +1,255 @@
+/* 面板样式
+   设计沿用 dark-saas 的规范（炭黑/浅色表面 + hairline 分隔 + 单一强调色 + 负字距标题），
+   但默认走【浅色】—— 京东页面本身是白底，深色面板放在上面太突兀。
+   两套色板用 CSS 变量切换：#jdar-ui 默认浅色，加 .jdar-dark 变深色。
+   规则全部以 #jdar-ui 限定，避免被页面样式串味。 */
+
+#jdar-ui,
+#jdar-ui * { box-sizing: border-box; }
+
+#jdar-ui {
+  /* 浅色（默认） */
+  --p-bg: #ffffff;
+  --p-surface: #f6f7f9;
+  --p-surface-2: #eef0f3;
+  --p-hair: #e3e6ea;
+  --p-hair-strong: #cfd4da;
+  --p-ink: #1b1d21;
+  --p-ink-muted: #4a4f57;
+  --p-ink-subtle: #7b8189;
+  --p-ink-tertiary: #9aa0a7;
+  --p-primary: #5e6ad2;
+  --p-primary-hover: #4d59c4;
+  --p-on-primary: #ffffff;
+  --p-danger: #d93a3f;
+  --p-warn: #b7791f;
+  --p-log-bg: #fbfbfc;
+  --p-shadow: 0 8px 24px rgba(16, 24, 40, .16);
+
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  width: 292px;
+  z-index: 2147483647;
+  background: var(--p-bg);
+  border: 1px solid var(--p-hair);
+  border-radius: 10px;
+  color: var(--p-ink);
+  font-family: Inter, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  letter-spacing: 0;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: var(--p-shadow);
+}
+
+/* 深色（.jdar-dark）：同一套规范的另一半 */
+#jdar-ui.jdar-dark {
+  --p-bg: #0f1011;
+  --p-surface: #141516;
+  --p-surface-2: #18191a;
+  --p-hair: #23252a;
+  --p-hair-strong: #34343a;
+  --p-ink: #f7f8f8;
+  --p-ink-muted: #d0d6e0;
+  --p-ink-subtle: #8a8f98;
+  --p-ink-tertiary: #62666d;
+  --p-primary: #5e6ad2;
+  --p-primary-hover: #828fff;
+  --p-on-primary: #ffffff;
+  --p-danger: #e5484d;
+  --p-warn: #e8a33d;
+  --p-log-bg: #010102;
+  --p-shadow: 0 8px 24px rgba(0, 0, 0, .45);
+}
+
+/* ---------- 标题栏（可拖动） ---------- */
+#jdar-ui .jdar-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--p-hair);
+  background: var(--p-bg);
+  cursor: move;
+  user-select: none;
+}
+#jdar-ui .jdar-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--p-primary);
+  flex: 0 0 auto;
+}
+#jdar-ui .jdar-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--p-ink);
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#jdar-ui .jdar-tag { font-size: 11px; color: var(--p-ink-subtle); flex: 0 0 auto; }
+
+/* 标题栏上的「设置」按钮：一直可见，点它打开扩展设置页 */
+#jdar-ui .jdar-headbtn {
+  flex: 0 0 auto;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--p-ink-muted);
+  background: var(--p-surface);
+  border: 1px solid var(--p-hair);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .12s ease, border-color .12s ease, color .12s ease;
+}
+#jdar-ui .jdar-headbtn:hover {
+  background: var(--p-surface-2);
+  border-color: var(--p-primary);
+  color: var(--p-primary);
+}
+
+/* ---------- 内容区 ---------- */
+#jdar-ui .jdar-body { padding: 12px; }
+
+#jdar-ui .jdar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+#jdar-ui .jdar-label {
+  font-size: 11px;
+  color: var(--p-ink-subtle);
+  flex: 0 0 auto;
+  letter-spacing: .04em;
+}
+
+/* 分段控件：模拟 / 真实 */
+#jdar-ui .jdar-seg {
+  display: flex;
+  flex: 1 1 auto;
+  background: var(--p-surface);
+  border: 1px solid var(--p-hair);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+#jdar-ui .jdar-seg button {
+  flex: 1 1 0;
+  padding: 5px 0;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--p-ink-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .12s ease, color .12s ease;
+}
+#jdar-ui .jdar-seg button:hover { background: var(--p-surface-2); }
+#jdar-ui .jdar-seg button.is-active { background: var(--p-primary); color: var(--p-on-primary); }
+#jdar-ui .jdar-seg button.is-active.is-real { background: var(--p-danger); }
+
+/* 输入框 */
+#jdar-ui input[type=number],
+#jdar-ui input[type=text] {
+  background: var(--p-surface);
+  border: 1px solid var(--p-hair);
+  border-radius: 8px;
+  color: var(--p-ink);
+  font-size: 12px;
+  font-family: inherit;
+  padding: 5px 8px;
+  outline: none;
+  min-width: 0;
+}
+#jdar-ui input[type=number]:focus,
+#jdar-ui input[type=text]:focus {
+  border-color: var(--p-primary);
+  box-shadow: 0 0 0 2px rgba(94, 106, 210, .28);
+}
+#jdar-ui .jdar-cap { width: 58px; text-align: center; }
+#jdar-ui .jdar-unit { font-size: 11px; color: var(--p-ink-tertiary); flex: 0 0 auto; }
+
+/* 按钮：主 / 次 */
+#jdar-ui button.jdar-btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--p-hair);
+  background: var(--p-bg);
+  color: var(--p-ink-muted);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .12s ease, border-color .12s ease;
+}
+#jdar-ui button.jdar-btn:hover { background: var(--p-surface); border-color: var(--p-hair-strong); }
+#jdar-ui button.jdar-primary {
+  background: var(--p-primary);
+  border-color: var(--p-primary);
+  color: var(--p-on-primary);
+}
+#jdar-ui button.jdar-primary:hover { background: var(--p-primary-hover); border-color: var(--p-primary-hover); }
+#jdar-ui button.jdar-primary.is-running { background: var(--p-danger); border-color: var(--p-danger); }
+#jdar-ui button.jdar-block { width: 100%; }
+#jdar-ui button.jdar-sm { padding: 5px 9px; font-size: 11px; }
+
+/* 状态条 */
+#jdar-ui #jdar-status {
+  background: var(--p-surface);
+  border: 1px solid var(--p-hair);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--p-ink-muted);
+  min-height: 46px;
+  word-break: break-word;
+}
+#jdar-ui .jdar-meta {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--p-ink-tertiary);
+  line-height: 1.55;
+}
+
+/* 日志 */
+#jdar-ui .jdar-logbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 6px;
+}
+#jdar-ui .jdar-link {
+  font-size: 11px;
+  color: var(--p-ink-subtle);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+}
+#jdar-ui .jdar-link:hover { color: var(--p-primary); }
+#jdar-ui #jdar-log {
+  display: block;
+  margin: 0;
+  max-height: 180px;
+  overflow: auto;
+  background: var(--p-log-bg);
+  border: 1px solid var(--p-hair);
+  border-radius: 8px;
+  padding: 8px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--p-ink-subtle);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+#jdar-ui #jdar-log.is-hidden { display: none; }
