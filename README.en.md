@@ -260,15 +260,15 @@ word matched, so the log only said "risk prompt detected" with no way to diagnos
 - **The popup guard now runs at `document_start`** (new `src/openguard.js`): previously `window.open` was
   replaced at `document_idle`, but the page had already cached the **native reference** at startup —
   so 「去评价」 still opened a new tab, the old tab waited 8 s for nothing, and a tab accumulated per order.
-  Replacing it before any page script runs actually works, so **the whole run stays in one tab**.
+  v0.1.1 moved the replacement to `document_start` — **but see the correction below: that did not actually fix it.**
 
-> **⚠️ Correction (2026-10-09, measured)**: the previous sentence is wrong. A content script runs in an
-> **isolated world**, so assigning `window.open` there **cannot** affect the page's own reference.
-> The new review center's 「去评价」 therefore **still opens a new tab**; the "lease" hands control to that
-> tab and the old one stops quietly within 2.5 s (no ERROR, no full 8 s wait). Cost: one extra tab per
-> order — just close them when the run finishes. A `target="_blank"` anchor *is* neutralised, because the
-> click listener lives on the shared DOM. See the popup-blocking section in the Chinese README for the
-> full capability boundary.
+> **⚠️ Correction (2026-10-09, measured)**: the popup "fix" does **not** work for this button.
+> A content script runs in an **isolated world**, so assigning `window.open` there **cannot** affect the
+> page's own reference. The new review center's 「去评价」 therefore **still opens a new tab**; the "lease"
+> hands control to that tab and the old one stops quietly within 2.5 s (no ERROR, no full 8 s wait).
+> Cost: one extra tab per order — just close them when the run finishes. A `target="_blank"` anchor *is*
+> neutralised, because the click listener lives on the shared DOM. See the popup-blocking section in the
+> Chinese README for the full capability boundary.
 - A list click that does not navigate is **no longer logged as ERROR**: a new tab taking over is normal,
   and the tab stops quietly after 2.5 s instead of waiting the full 8 s.
 
