@@ -296,7 +296,8 @@
       '  <div class="jdar-head" id="jdar-title">' +
       '    <span class="jdar-dot"></span>' +
       '    <span class="jdar-title">京东自动评价</span>' +
-      '    <span class="jdar-tag">v' + EXT_VERSION + ' · 测试版 · 60字</span>' +
+      '    <span class="jdar-tag">v' + EXT_VERSION + ' · 测试版</span>' +
+      '    <button type="button" class="jdar-headbtn jdar-star" id="jdar-star" title="觉得好用？到 GitHub 给个 Star ⭐">⭐</button>' +
       '    <button type="button" class="jdar-headbtn" id="jdar-open-opt" title="打开扩展设置页">设置</button>' +
       '  </div>' +
       '  <div class="jdar-body">' +
@@ -401,6 +402,12 @@
       e.stopPropagation();
       openOptionsPage();
     });
+    $('#jdar-star').on('mousedown', function (e) { e.stopPropagation(); });
+    $('#jdar-star').on('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      openRepoPage('');
+    });
     renderToggleBtn();
   }
 
@@ -474,6 +481,35 @@
         logInfo('已请求后台打开设置页');
       });
     } catch (e) { fail(String(e && e.message || e)); }
+  }
+
+  /**
+   * 打开项目在 GitHub 上的页面（面板标题栏的「⭐ Star」）。
+   * 为什么必须交给后台开：① 内容脚本没有 chrome.tabs；② 页面的 window.open 被我们换成了原地跳转，
+   * 自己开标签页会变成"把京东页面顶掉"。后台只放行白名单里的地址，不是一个任意跳转的口子。
+   */
+  const REPO_URL = 'https://github.com/fanqie2025/jd-auto-review-ext';
+  function openRepoPage(what) {
+    const url = what ? (REPO_URL + what) : REPO_URL;
+    try {
+      chrome.runtime.sendMessage({ type: 'openUrl', url: url }, function (resp) {
+        if (chrome.runtime.lastError) {
+          logWarn('打开 GitHub 失败', chrome.runtime.lastError.message);
+          updateStatus('打开 GitHub 失败，手动访问：' + REPO_URL, '#b7791f');
+          return;
+        }
+        if (!resp || resp.ok !== true) {
+          logWarn('打开 GitHub 被拒', (resp && resp.error) || '');
+          updateStatus('打开 GitHub 失败，手动访问：' + REPO_URL, '#b7791f');
+          return;
+        }
+        logInfo('已在新标签页打开 GitHub', { url: url });
+        updateStatus('⭐ 谢谢！新标签页已打开 GitHub —— 右上角点一下 Star 就行。', 'green');
+      });
+    } catch (e) {
+      logWarn('打开 GitHub 抛错', String(e && e.message || e));
+      updateStatus('打开 GitHub 失败，手动访问：' + REPO_URL, '#b7791f');
+    }
   }
 
   /* ---------- 运行权（lease）：同一时刻只允许一个标签页在跑 ----------
@@ -1853,7 +1889,7 @@
         if (!cands.length) cands = filterSkipped(clickCandidates('去评价').concat(clickCandidates('评价')));
         if (!cands.length) {
           setRunning(false);
-          updateStatus('🎉 待评价列表已空，循环结束。', 'green');
+          updateStatus('🎉 待评价列表已空，循环结束。⭐ 觉得好用的话，点标题栏的 ⭐ 给个 Star。', 'green');
           return;
         }
         rememberCard(cands[0]);   // 先记下这张卡片：万一跳过去是个"没法评价"的页面，才知道该跳过谁
@@ -1887,7 +1923,7 @@
         const cands = filterSkipped(clickCandidates('去评价'));
         if (!cands.length) {
           setRunning(false);
-          updateStatus('🎉 新评价中心没有待评价卡片了，循环结束。', 'green');
+          updateStatus('🎉 新评价中心没有待评价卡片了，循环结束。⭐ 觉得好用的话，点标题栏的 ⭐ 给个 Star。', 'green');
           return;
         }
         rememberCard(cands[0]);   // 先记下这张卡片：万一跳过去是个"没法评价"的页面，才知道该跳过谁

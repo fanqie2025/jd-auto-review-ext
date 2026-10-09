@@ -37,6 +37,11 @@
     header.top { margin-bottom: 20px; }
     h1 { margin: 0 0 4px; font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
     .sub { color: var(--ink-subtle); font-size: 12.5px; }
+    .badge { display: inline-block; vertical-align: 2px; font-size: 11px; font-weight: 500; padding: 2px 7px;
+             border: 1px solid var(--hairline); border-radius: 999px; color: var(--ink-subtle); letter-spacing: 0; }
+    .star-line { margin-top: 8px; padding: 8px 10px; border: 1px solid var(--hairline); border-radius: 8px;
+                 background: var(--surface-1); line-height: 1.9; word-break: break-all; }
+    .star-line a { color: var(--primary); }
 
     section {
       background: var(--surface-1);
@@ -154,8 +159,17 @@
 <body>
 <div class="wrap">
   <header class="top">
-    <h1>京东自动评价</h1>
+    <h1>京东自动评价 <span class="badge">测试版 v0.1.0</span></h1>
     <div class="sub">默认免 AI、免密钥：文案取同款商品别人已发布的真实评价，图片取那些评价自带的买家秀。默认模式 <b>模拟</b>（只填不提交）。</div>
+    <div class="sub star-line">
+      ⭐ 觉得好用？到 GitHub 给个 <b>Star</b> —— 这是对这类小工具最实在的支持：
+      <a id="starRepo" href="https://github.com/fanqie2025/jd-auto-review-ext" target="_blank" rel="noreferrer">https://github.com/fanqie2025/jd-auto-review-ext</a>
+      <br />
+      文档：<a href="https://github.com/fanqie2025/jd-auto-review-ext/blob/main/%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B.md" target="_blank" rel="noreferrer">中文使用教程</a>
+      · <a href="https://github.com/fanqie2025/jd-auto-review-ext/blob/main/TUTORIAL.en.md" target="_blank" rel="noreferrer">English Tutorial</a>
+      · <a href="https://github.com/fanqie2025/jd-auto-review-ext/blob/main/THIRD-PARTY-NOTICES.md" target="_blank" rel="noreferrer">代码来源与致谢</a>
+      · <a href="https://github.com/fanqie2025/jd-auto-review-ext/issues" target="_blank" rel="noreferrer">反馈问题</a>
+    </div>
   </header>
 
   <section>

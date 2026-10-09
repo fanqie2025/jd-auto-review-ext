@@ -90,7 +90,17 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-#jdar-ui .jdar-tag { font-size: 11px; color: var(--p-ink-subtle); flex: 0 0 auto; }
+#jdar-ui .jdar-tag {
+  font-size: 11px; color: var(--p-ink-subtle);
+  flex: 0 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* 标题栏上的「⭐」：跳到 GitHub 给个 Star。标题栏宽度只有 292px，所以按钮做小、靠 tooltip 说明 */
+#jdar-ui .jdar-headbtn.jdar-star { color: var(--p-primary); padding: 3px 7px; font-size: 12px; line-height: 1.35; }
+#jdar-ui .jdar-headbtn.jdar-star:hover {
+  background: var(--p-primary); border-color: var(--p-primary); color: var(--p-on-primary);
+}
 
 /* 标题栏上的「设置」按钮：一直可见，点它打开扩展设置页 */
 #jdar-ui .jdar-headbtn {

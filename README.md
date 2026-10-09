@@ -1,5 +1,9 @@
 # 京东自动评价（图文 · 60字）— Chrome/Edge 扩展 · 测试版 v0.1.0
 
+**中文** · [English](README.en.md) ｜ 教程：[中文使用教程](使用教程.md) · [English Tutorial](TUTORIAL.en.md)
+
+> ⭐ **如果这个项目帮到你，请到 GitHub [点个 Star](https://github.com/fanqie2025/jd-auto-review-ext)** —— 这是对这类小工具最实在的支持。
+
 把你原来那个油猴脚本的逻辑，原样搬成一个**独立 MV3 扩展**：不用再装篡改猴 / Violentmonkey。
 
 **默认不用 AI、不用密钥**：文案直接取同款商品**别人已经发布过的真实评价**，图片取**那些评价自带的买家秀图**。
@@ -240,8 +244,10 @@
 
 ```
 manifest.json          MV3 清单（权限：storage/tabs + 京东与常见大模型域名）
-使用教程.md            面向使用者的手把手教程（装 / 跑模拟 / 切真实 / 常见问题）
-README.md              本文件：参考手册
+使用教程.md            中文手把手教程（装 / 跑模拟 / 切真实 / 常见问题）
+TUTORIAL.en.md         English step-by-step tutorial
+README.md              中文参考手册（本文件）
+README.en.md           English reference manual
 THIRD-PARTY-NOTICES.md 来源与致谢：每段移植/参考代码的出处、许可原文与行号对应
 LICENSE                本项目自身的许可（MIT）
 icons/                 16/48/128 图标
@@ -287,6 +293,15 @@ src/options.html/js    设置页
 | 出问题想定位 | 点面板「下载」把日志存下来 —— 里面有每一步的文案字数、图片张数、页面认账情况、点击与反馈片段 |
 | 老评价页配图注入失败 | 京东偶尔改上传组件；先用「模拟」跑一单看面板提示，再据此改 `src/content.js` 里的 `findFileInputForSku` |
 | 新发布页找不到正文框 | 改 `newPublishStep()` 里的 `textarea.rate-comment-content-textarea` |
+
+## ⭐ 支持这个项目
+
+如果它帮你省了事，**到 GitHub 点个 Star** 就是最好的支持：
+
+**https://github.com/fanqie2025/jd-auto-review-ext**
+
+- 扩展里也能直接点：**面板标题栏的 `⭐` 按钮**，或**设置页顶部**的链接（都会在新标签页打开，不会把你正在填的京东页面顶掉）。
+- 遇到问题、想要新功能：开 **[Issue](https://github.com/fanqie2025/jd-auto-review-ext/issues)**，把面板「下载」下来的日志一起贴上，我就能直接定位。
 
 ## 来源与致谢（站在谁的肩膀上）
 

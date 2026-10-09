@@ -23,6 +23,15 @@ const CONFIG_KEY = 'config';
 const LOG_KEY = 'JDAR_LOG';
 const LOG_MAX = 800;        // 环形缓冲：最多留 800 条
 
+/** 允许后台替内容脚本打开的地址（面板「⭐ Star」用）。白名单而不是任意 URL。 */
+const OPEN_URL_ALLOW = [
+  'https://github.com/fanqie2025/jd-auto-review-ext',
+  'https://github.com/fanqie2025/jd-auto-review-ext/issues',
+  'https://github.com/fanqie2025/jd-auto-review-ext/blob/main/使用教程.md',
+  'https://github.com/fanqie2025/jd-auto-review-ext/blob/main/TUTORIAL.en.md',
+  'https://github.com/fanqie2025/jd-auto-review-ext/blob/main/THIRD-PARTY-NOTICES.md'
+];
+
 async function getConfig() {
   const stored = await chrome.storage.local.get(CONFIG_KEY);
   return Object.assign({}, JDAR_DEFAULTS, stored[CONFIG_KEY] || {});
@@ -419,6 +428,28 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       });
     } catch (e) {
       logBg('error', '打开设置页失败', String(e && e.message || e));
+      sendResponse({ ok: false, error: String(e && e.message || e) });
+    }
+    return true;
+  }
+
+  if (msg.type === 'openUrl') {
+    // 面板上的「⭐ Star」要开新标签页。内容脚本开不了（没有 chrome.tabs），而且页面的 window.open
+    // 已被我们换成原地跳转 —— 自己开会把京东页面顶掉，所以统一交给后台。
+    // **只放行白名单前缀**，免得这里变成一个"任意 URL 跳转"的口子。
+    const u = String(msg.url || '');
+    const okPrefix = OPEN_URL_ALLOW.some(function (p) { return u === p || u.indexOf(p + '/') === 0 || u.indexOf(p + '#') === 0 || u.indexOf(p + '?') === 0; });
+    if (!okPrefix) {
+      logBg('warn', '拒绝打开非白名单地址', u.slice(0, 120));
+      sendResponse({ ok: false, error: '地址不在白名单里' });
+      return true;
+    }
+    try {
+      chrome.tabs.create({ url: u, active: true }, function () {
+        sendResponse({ ok: !chrome.runtime.lastError, error: chrome.runtime.lastError ? chrome.runtime.lastError.message : undefined });
+      });
+    } catch (e) {
+      logBg('error', '打开链接失败', String(e && e.message || e));
       sendResponse({ ok: false, error: String(e && e.message || e) });
     }
     return true;
