@@ -371,7 +371,7 @@
     <div class="row"><label class="k" for="uploadWaitTimeoutSec">等图片上传上限（秒）</label><input type="number" id="uploadWaitTimeoutSec" min="3" max="300" step="1" /></div>
     <div class="check"><input type="checkbox" id="typeLikeHuman" /><label for="typeLikeHuman">分块打字（页面字数计数不认账时自动逐块重打）</label></div>
     <div class="check"><input type="checkbox" id="riskStop" /><label for="riskStop">页面出现「正在维修 / 系统繁忙 / 安全验证」就立刻停手</label></div>
-    <div class="check"><input type="checkbox" id="blockPopups" /><label for="blockPopups"><b>把页面的「新开标签页」改成原地跳转</b>（关掉的话，扩展发出的点击会被 Chrome 弹窗拦截器挡住）</label></div>
+    <div class="check"><input type="checkbox" id="blockPopups" /><label for="blockPopups"><b>尽量把页面的「新开标签页」改成原地跳转</b>（<b>尽力而为</b>：页面自己在脚本里调 <code>window.open</code> 的按钮拦不住 —— 新版评价中心的「去评价」就是这种，那种情况由「运行权」把控制权交给新标签页；<code>target="_blank"</code> 锚点能拦住。关掉这个开关就完全交给浏览器放行）</label></div>
     <div class="row">
       <label class="k" for="panelTheme">面板配色</label>
       <select id="panelTheme">
