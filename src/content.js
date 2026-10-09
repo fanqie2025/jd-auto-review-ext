@@ -950,23 +950,82 @@
     return PACING.parseCountText ? PACING.parseCountText((scope && scope.innerText) || '') : null;
   }
 
-  // 页面是否出现风控/维护提示（评价区被软封的原文签名）
+  /* ---------- 风控识别（保守优先：宁可漏判也别误判，误判会白跑一整轮） ---------- */
+
+  /** 可能是"提示/弹层"的容器：真风控会以弹窗、遮罩、toast、验证框的形式出现 */
+  const RISK_BOX_SEL = '[role="dialog"],[class*="dialog"],[class*="modal"],[class*="popup"],[class*="toast"],' +
+    '[class*="mask"],[class*="verify"],[class*="safe"],[class*="risk"],[class*="warn"],[class*="tip"],[class*="alert"]';
+
+  /** 在"提示/弹层"里找风控词（硬词或弱词都算）。返回 {hit, where} 或 null */
+  function riskBoxHit() {
+    try {
+      const boxes = document.querySelectorAll(RISK_BOX_SEL);
+      for (let i = 0; i < boxes.length && i < 80; i++) {
+        const el = boxes[i];
+        if (!isVisibleEl(el)) continue;
+        const t = String((el.innerText || '') + ' ' + (el.textContent || '')).slice(0, 800);
+        const hit = (PACING.matchRisk && PACING.matchRisk(t)) || (PACING.matchRiskWeak && PACING.matchRiskWeak(t)) || '';
+        if (hit) return { hit: hit, where: String(el.className || el.tagName || '').slice(0, 60) };
+      }
+    } catch (e) { /* ignore */ }
+    return null;
+  }
+
+  /**
+   * 页面是否出现风控/维护提示。**返回命中的那个词**（'' = 没命中）。
+   *
+   * ⚠️ 2026-10-09 事故（v0.1.1 之后）：以前是拿 `document.body.innerText` 去匹配
+   * 「无法评价 / 验证码 / 系统繁忙」这类词，**正常发布页正文里一句普通文案就能把整轮掐死**，
+   * 而且 stopForRisk 不记录命中了哪个词 —— 日志只留一句"出现风控/维护提示"，根本查不出来。
+   *
+   * 现在的判据（必须同时满足）：
+   *   ① 命中"硬风控词"（正在维修 / 系统繁忙 / 操作过于频繁 / 访问受限 / 账号异常 / 安全验证 / 请稍后重试）；
+   *   ② **并且**有结构信号：这些字出现在**弹层/提示块**里，或者整页文本很短（页面被换成了拦截页）；
+   * 只满足 ①（同样的字只是出现在正文里）→ 记一条 WARN 说明"疑似误报、继续跑"，**不停手**。
+   */
   function riskDetected(scopeEl) {
-    if (!CFG.riskStop) return false;
-    if (!PACING.looksLikeRiskControl) return false;
+    if (!CFG.riskStop) return '';
+    if (!PACING.matchRisk) return '';
+
+    // ① 先用"弹层"这个强信号查一遍（硬词、弱词都算）
+    const box = riskBoxHit();
+    if (box) {
+      logWarn('风控判定：提示层里出现风控词', { 命中: box.hit, 位置: box.where, url: location.href });
+      return box.hit;
+    }
+
+    // ② 再看正文
     let scope = document.body;
     try {
       if (scopeEl && scopeEl.closest) {
         scope = scopeEl.closest('.rate-comment, .f-textarea, .comment-form, form') || document.body;
       }
     } catch (e) { scope = document.body; }
-    return PACING.looksLikeRiskControl(((scope && scope.innerText) || '').slice(0, 4000));
+    const bodyText = String((scope && scope.innerText) || '').slice(0, 4000);
+    const hit = PACING.matchRisk(bodyText);
+    if (!hit) return '';
+
+    // 整页很短 = 页面被替换成了拦截页（真风控就是这样），这种要停
+    const compact = bodyText.replace(/\s+/g, '');
+    if (compact.length < 300) {
+      logWarn('风控判定：整页几乎只剩这句提示 → 判定为真风控', { 命中: hit, 整页字数: compact.length, url: location.href });
+      return hit;
+    }
+
+    // 只是正文里出现了同样的字 → 大概率是误报（帮助文案、FAQ、页脚），继续跑
+    logWarn('风控判定：正文里出现了风控词，但不在弹层里、整页也不短 → 判定为误报，继续跑', {
+      命中: hit, 整页字数: compact.length, 片段: (window.JDAR_LOG ? window.JDAR_LOG.tail(bodyText, 80) : '')
+    });
+    return '';
   }
 
-  function stopForRisk(where) {
+  function stopForRisk(where, hit) {
     setRunning(false);
-    updateStatus('🛑 ' + (where || '页面') + '出现风控/维护提示，已立刻停手。' +
-      '⚠️ 千万别反复重试（重试只会延长封锁），隔几小时或隔夜再跑。', '#e4393c');
+    const why = hit ? ('命中了「' + hit + '」') : '出现风控/维护提示';
+    logErr('停手：' + (where || '页面') + ' ' + why, { 命中: hit || '', url: location.href });
+    updateStatus('🛑 ' + (where || '页面') + ' ' + why + '，已立刻停手。' +
+      '⚠️ 千万别反复重试（重试只会延长封锁），隔几小时或隔夜再跑。' +
+      '（如果页面上其实没看到这类提示，把面板日志下载发我 —— 这一版会把命中的词写进日志。）', '#e4393c');
   }
 
   // 一次性赋值 + 事件（新版评价中心实测可用）
@@ -1800,7 +1859,8 @@
       updateStatus('🧪 模拟模式：正文/星级/配图都已填好，**没有点「发表」**。要看正式效果请在面板把模式切成「真实」。', '#e4393c');
       return;
     }
-    if (riskDetected()) { stopForRisk('评价页'); return; }
+    const riskHit = riskDetected();
+    if (riskHit) { stopForRisk('评价页', riskHit); return; }
     // 发表前确认自己仍是驱动页（避免两个标签页同时提交）
     canDrive(function (yes) {
       if (!yes) { logWarn('本页不是驱动页，取消提交'); return; }
@@ -1903,7 +1963,8 @@
       const $target = $textareas.eq(index);
       if ($target.length === 0) { updateStatus('找不到评价输入框。', '#e4393c'); return; }
       fillReview($target[0], review, function () {
-        if (riskDetected($target[0])) { stopForRisk('评价页'); return; }
+        const riskHit2 = riskDetected($target[0]);
+        if (riskHit2) { stopForRisk('评价页', riskHit2); return; }
         updateStatus('第 ' + (index + 1) + ' 条已填入（' + countChars(review) + ' 字）', 'green');
         processNextItem(index + 1);
       });
@@ -2044,7 +2105,8 @@
             updateStatus('🧪 模拟模式：正文/星级/配图都已填好，**没有点「发布」**。要到面板把模式切成「真实」才会提交。', '#e4393c');
             return;
           }
-          if (riskDetected()) { stopForRisk('发布页'); return; }
+          const riskHit3 = riskDetected();
+          if (riskHit3) { stopForRisk('发布页', riskHit3); return; }
           // 提交前确认自己仍是驱动页（避免两个标签页同时提交）
           canDrive(function (yes) {
             if (!yes) { logWarn('本页不是驱动页，取消提交'); return; }
@@ -2069,7 +2131,8 @@
                   片段: window.JDAR_LOG ? window.JDAR_LOG.tail(body, 120) : '',
                   url: location.href
                 });
-                if (PACING.looksLikeRiskControl && PACING.looksLikeRiskControl(body)) { stopForRisk('发布之后'); return; }
+                const riskHit4 = riskDetected();
+                if (riskHit4) { stopForRisk('发布之后', riskHit4); return; }
                 if (okText) {
                   skipStreak = 0;          // 成功发表了一条 → 连续跳过计数清零
                   saveSkipState();
@@ -2126,7 +2189,8 @@
         return;
       }
       fillReview($box[0], review, function () {
-        if (riskDetected($box[0])) { stopForRisk('发布页'); return; }
+        const riskHit5 = riskDetected($box[0]);
+        if (riskHit5) { stopForRisk('发布页', riskHit5); return; }
         updateStatus('正文已填入（' + countChars(review) + ' 字）', 'green');
         newPublishFillStars();   // 2) 星级（新版默认就是满分，通常不动）
         afterText();

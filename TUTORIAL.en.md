@@ -1,4 +1,4 @@
-# Tutorial · JD Auto Review (image + 60 characters) — Beta v0.1.1
+# Tutorial · JD Auto Review (image + 60 characters) — Beta v0.1.2
 
 > **English** · [中文使用教程](使用教程.md)
 > ｜ 📥 **Download**: [GitHub Releases page](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest)
@@ -46,7 +46,7 @@ Direct links without opening the page (**these always point at the newest releas
    - New review center: `https://comment.m.jd.com/pc-static/center`
    - Legacy pending list: `https://club.jd.com/myJdcomments/myJdcomment.action?sort=0`
 2. A panel appears in the **bottom-left** corner (drag its title bar to move it; the position is remembered).
-3. Check the version next to the title: it should read **`v0.1.1 · 测试版`**. If not, the page still runs the old script → click **Reload** on `chrome://extensions`, then press F5 on the JD page.
+3. Check the version next to the panel title: it must **match the version shown on the card in `chrome://extensions`** (e.g. `v0.1.2`). If they differ, the page still runs the old script → click **Reload** on `chrome://extensions`, then press F5 on the JD page.
 4. Set mode to **模拟 (Simulate)**, set the limit to **`1`**, click **开始 (Start)**.
 5. Watch it: it clicks into the first order → fills the text → sets 5 stars → uploads images → then **stops before submitting** with `🧪 模拟模式…没有点发布`.
 6. **Look at the page by hand**: is the text ≥60 characters, does it read naturally, any `&ldquo;` garbage, are 2–3 images attached?
@@ -74,7 +74,7 @@ Direct links without opening the page (**these always point at the newest releas
 | **上限 [ N ] 条评价** | Max **reviews published** this run. Counted in *reviews*, not orders (one order can contain several items, and one publish can produce several reviews). `0` = unlimited |
 | **保存 (Save)** | Writes the current "mode + limit" back to the options page as the new default |
 | **开始 / 暂停** | Start / stop with the current mode |
-| Title bar, left | Version number (should be `v0.1.1`) |
+| Title bar, left | Version number (must match the card in `chrome://extensions`, e.g. `v0.1.2`) |
 | Title bar, **⭐** | Opens this project on GitHub — please give it a Star |
 | Title bar, **设置** | Opens the extension options page |
 | Log area | Collapse / Copy / Download / Clear. **When something goes wrong, click Download** and send me the txt |
@@ -137,7 +137,8 @@ Other hard rules:
 | No panel on the page | The page is not supported (only `club.jd.com` / `comment.m.jd.com`), or the extension is disabled |
 | "后台无响应（扩展可能被重新加载）" | You clicked Reload on the extensions page → **press F5 on the JD page** |
 | "扩展刚被重新加载过，本页面里的旧脚本已失效" | Same as above: F5 |
-| Version is not `v0.1.1` | Reload the extension on `chrome://extensions`, then F5 on the JD page |
+| Version differs from the card in `chrome://extensions` | Reload the extension there, then press F5 on the JD page |
+| "风险/维护提示" stop, but the page showed nothing | Since v0.1.2 a stop needs a hard risk word **plus** an overlay/replaced page, and the **matched word is written to the log**. If it still misfires, download the log and send it (look for the `风控判定：…` lines) |
 | It says an API key is missing | **Keep "文案来源 = 现成评价" and no key is needed**; only the AI mode needs one. Then the endpoint is **already filled in as DeepSeek official** (`https://api.deepseek.com/v1/chat/completions`, model `deepseek-chat`) — just paste the key |
 | Clicking "去评价" does nothing | It retries and writes a log; if it happens for several orders in a row, send me the log |
 | Takeout / service orders keep being skipped | By design (skips do not count toward the limit). If the list is only such orders, it finishes all cards and then reports "no pending cards" |

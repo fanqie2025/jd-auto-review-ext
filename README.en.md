@@ -1,4 +1,4 @@
-# JD Auto Review (image + 60 chars) — Chrome/Edge extension · Beta v0.1.1
+# JD Auto Review (image + 60 chars) — Chrome/Edge extension · Beta v0.1.2
 
 **English** · [中文说明](README.md) ｜ Tutorial: [English](TUTORIAL.en.md) · [中文](使用教程.md)
 ｜ 📥 **Download**: [GitHub Releases page](https://github.com/fanqie2025/jd-auto-review-ext/releases/latest)
@@ -208,6 +208,31 @@ Two things the AI test handles for you automatically:
 ---
 
 ## Changelog
+
+### v0.1.2 (2026-10-09) — fixes a false-positive risk-control stop
+
+**Symptom**: the text was filled and 3 images were uploaded, then out of nowhere
+`🛑 发布页出现风控/维护提示，已立刻停手` — even though the page showed no such prompt.
+
+**Root cause**: the risk word list contained `/无法评价/` ("cannot be reviewed") and `/验证码/` ("captcha"),
+which also appear in **ordinary page copy**; detection matched against `document.body.innerText`
+(the **whole page**, including help links and the footer); and `stopForRisk()` never recorded **which**
+word matched, so the log only said "risk prompt detected" with no way to diagnose it.
+
+**Fixes**:
+
+- The list is split into **hard** words (servers under maintenance / system busy / too frequent /
+  access restricted / account anomaly / security verification / please retry later) and **weak** words
+  (captcha / Turing test / slider verification / "cannot be reviewed") — the last one belongs to the
+  dedicated "this order cannot be reviewed" detection, not to risk control.
+- **Stopping now requires two conditions**: ① a hard risk word matched, **and** ② a structural signal —
+  the words appear inside an **overlay/toast/dialog** (`[role=dialog] / [class*=modal|popup|toast|mask|verify|safe|risk]`),
+  **or** the whole page text is under 300 characters (meaning the page was replaced by an interstitial,
+  which is what real risk control looks like).
+- If only ① holds (the same words merely appear in body copy) a WARN is logged saying "likely a false
+  positive, continuing" and the run **does not stop**.
+- `stopForRisk()` now records the **matched word** in both the log and the panel;
+  `matchRisk()` returns the matched word instead of a boolean.
 
 ### v0.1.1 (2026-10-09) — fixes an infinite-skip loop
 

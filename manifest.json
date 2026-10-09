@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "京东自动评价（图文·60字）测试版",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "京东待评价订单自动处理：复用现成好评文字 + 买家秀晒单图，凑够 ≥60 字带图评价，自动打五星、自动下一单。没法评价的单（外卖/服务/已评价）自动跳过且不计入上限。支持老评价页与新评价中心，默认试跑（只填不提交）。",
   "homepage_url": "https://github.com/fanqie2025/jd-auto-review-ext",
   "permissions": ["storage", "tabs"],

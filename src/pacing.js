@@ -70,23 +70,63 @@
   }
 
   /** 京东风控/维护类提示（评价区被软封的原文签名就是这些词） */
+  /**
+   * 「硬风控」词：正常页面正文里基本不会出现，命中就可疑。
+   *
+   * ⚠️ 2026-10-09 事故：这里原先还有 `/无法评价/`，而识别是拿**整页文本**去匹配的 ——
+   * 发布页正文里只要有一句普通的「无法评价」，整轮就被掐死（日志只有一句"出现风控/维护提示"，
+   * 不写命中了哪个词，根本查不出来）。
+   * 现在两处改了：① 把「无法评价」挪到 RISK_PATTERNS_WEAK（它本来就该由"这单没法评价"的专门识别负责）；
+   *              ② 这些词也不再单独构成停手理由，必须同时有**结构信号**（弹层里出现 / 整页被替换），见 content.js。
+   */
   const RISK_PATTERNS = [
     /正在维修/,
     /系统繁忙/,
-    /请稍后重试/,
-    /安全验证/,
-    /图灵/,
-    /验证码/,
     /操作过于频繁/,
     /访问受限/,
     /账号异常/,
+    /安全验证/,
+    /请稍后重试/
+  ];
+
+  /**
+   * 「弱风控」词：真风控页上一定有，但**正常页面里也会出现**（帮助链接、FAQ、页脚提示……）。
+   * 只有在「出现在弹层里」或「整页被替换成短短一句话」时才算数。
+   */
+  const RISK_PATTERNS_WEAK = [
+    /验证码/,
+    /图灵/,
+    /滑块验证/,
+    /拖动滑块/,
+    /人机/,
     /无法评价/
   ];
 
-  function looksLikeRiskControl(text) {
+  /** 命中「硬风控」词就返回那个词，没命中返回 ''。返回词而不是 true/false —— 日志里要写清是哪个词 */
+  function matchRisk(text) {
     const t = String(text || '');
-    if (!t) return false;
-    return RISK_PATTERNS.some(function (r) { return r.test(t); });
+    if (!t) return '';
+    for (let i = 0; i < RISK_PATTERNS.length; i++) {
+      const m = t.match(RISK_PATTERNS[i]);
+      if (m) return m[0];
+    }
+    return '';
+  }
+
+  /** 命中「弱风控」词就返回那个词，没命中返回 '' */
+  function matchRiskWeak(text) {
+    const t = String(text || '');
+    if (!t) return '';
+    for (let i = 0; i < RISK_PATTERNS_WEAK.length; i++) {
+      const m = t.match(RISK_PATTERNS_WEAK[i]);
+      if (m) return m[0];
+    }
+    return '';
+  }
+
+  /** 兼容老签名：只认「硬风控」词，返回布尔 */
+  function looksLikeRiskControl(text) {
+    return !!matchRisk(text);
   }
 
   /** 把毫秒说成人话：45 秒 / 1 分 20 秒 */
@@ -341,6 +381,8 @@
     parseCountText: parseCountText,
     counterAccepted: counterAccepted,
     looksLikeRiskControl: looksLikeRiskControl,
+    matchRisk: matchRisk,
+    matchRiskWeak: matchRiskWeak,
     humanDuration: humanDuration,
     sec2ms: sec2ms,
     migrateLegacyPacing: migrateLegacyPacing,
@@ -354,6 +396,7 @@
     looksUnreviewable: looksUnreviewable,
     UNREVIEWABLE_PATTERNS: UNREVIEWABLE_PATTERNS,
     LEGACY_PACING: LEGACY_PACING,
-    RISK_PATTERNS: RISK_PATTERNS
+    RISK_PATTERNS: RISK_PATTERNS,
+    RISK_PATTERNS_WEAK: RISK_PATTERNS_WEAK
   };
 })(typeof window !== 'undefined' ? window : globalThis);
